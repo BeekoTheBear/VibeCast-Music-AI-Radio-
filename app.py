@@ -9,7 +9,7 @@ TRACKS_DB = []
 
 @app.route('/')
 def home():
-    return jsonify({"status": "StreamStation API is running live!"}), 200
+    return jsonify({"status": "VibeCast API is running live!"}), 200
 
 # --- 1. STATION CREATION ROUTE ---
 @app.route('/api/create-station', methods=['POST'])
