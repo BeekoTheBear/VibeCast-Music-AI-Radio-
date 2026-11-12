@@ -64,10 +64,16 @@
     .suggestion-item:hover { background: var(--accent); color: white; }
     .suggestion-item img { width: 32px; height: 32px; border-radius: 4px; object-fit: cover; }
 
-    /* Media Stage (Video & Audio Player) */
+    /* Media Stage (In-App Video & Audio Player) */
     .media-stage { background: #0a0c10; border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 12px; text-align: center; }
-    .media-stage video, .media-stage iframe, .media-stage img { width: 100%; height: 215px; border-radius: 8px; object-fit: cover; display: none; margin: 0 auto 10px auto; background: #000; }
-    .info-box { background: #0d0f14; border: 1px solid var(--border); border-radius: 8px; padding: 14px; font-size: 0.88rem; line-height: 1.5; color: var(--text); text-align: left; max-height: 240px; overflow-y: auto; white-space: pre-wrap; margin-top: 8px; }
+    .stage-frame-wrap { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 8px; background: #000; margin-bottom: 10px; display: none; }
+    .stage-frame-wrap iframe, #ytPlayerContainer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+    .media-stage img { width: 100%; height: 215px; border-radius: 8px; object-fit: cover; display: none; margin: 0 auto 10px auto; background: #000; }
+    .info-box { background: #0d0f14; border: 1px solid var(--border); border-radius: 8px; padding: 14px; font-size: 0.88rem; line-height: 1.55; color: var(--text); text-align: left; max-height: 260px; overflow-y: auto; white-space: pre-wrap; margin-top: 8px; }
+
+    .yt-result-card { display: flex; align-items: center; gap: 10px; padding: 8px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; cursor: pointer; background: #12151e; }
+    .yt-result-card:hover { border-color: var(--accent); }
+    .yt-result-card img { width: 72px; height: 42px; object-fit: cover; border-radius: 4px; flex-shrink: 0; }
 
     .modal-overlay {
       position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85);
@@ -127,23 +133,25 @@
     </div>
   </header>
 
-  <!-- NOW PLAYING STAGE (Video, Live Lyrics, Rich Bio, Commerce) -->
+  <!-- NOW PLAYING STAGE (Contained Full-Length Video, Live Lyrics, Rich Bio, Commerce) -->
   <div class="card" id="nowPlayingCard" style="display: none;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; gap: 6px;">
-      <span style="font-size: 0.78rem; color: #b388ff; font-weight: 600;">ON AIR DECK</span>
+      <span style="font-size: 0.78rem; color: #b388ff; font-weight: 600;">ON AIR DECK • FULL STREAM</span>
       <div style="display: flex; gap: 6px;">
-        <button style="background: var(--yt); width: auto; padding: 5px 10px; font-size: 0.75rem; margin: 0;" onclick="launchYouTubeLyricsWindow()">▶ YouTube Lyrics</button>
+        <button style="background: var(--yt); width: auto; padding: 5px 10px; font-size: 0.75rem; margin: 0;" onclick="loadInAppYouTubeVideo(true)">📺 Lyric Video</button>
         <button class="secondary" style="width: auto; padding: 5px 10px; font-size: 0.75rem; margin: 0;" onclick="skipNextTrack()">⏭ Next</button>
       </div>
     </div>
 
     <div class="media-stage">
-      <video id="videoStage" controls playsinline></video>
-      <iframe id="iframeStage" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      <div class="stage-frame-wrap" id="ytStageWrap">
+        <div id="ytPlayerContainer"></div>
+      </div>
       <img id="artStage" src="" alt="Artwork" />
       <div id="stageTitle" style="font-weight: 700; font-size: 1rem; margin-top: 6px;">Track Title</div>
       <div id="stageArtist" style="font-size: 0.85rem; color: var(--muted); margin-bottom: 6px;">Artist</div>
       <div id="stageBadges"></div>
+      <div id="ytAltPicker" style="display: none; margin-top: 10px; text-align: left;"></div>
     </div>
 
     <div class="tabs">
@@ -181,7 +189,7 @@
         <input type="text" id="artistName" placeholder="Search exact music artist (e.g., Alec Benjamin)..." oninput="searchGlobalArtists(this.value)" autocomplete="off" />
         <div id="artistSuggestions" class="suggestions-list"></div>
       </div>
-      <button onclick="addGlobalArtistSeed()">Seed Artist into Rotation</button>
+      <button onclick="addGlobalArtistSeed()">Seed Full-Track Rotation</button>
     </div>
 
     <div id="panelCustom" class="tab-panel">
@@ -255,6 +263,13 @@
       <div id="setPanelPrefs" class="tab-panel">
         <div class="setting-row">
           <div>
+            <div style="font-weight: 600;">Full-Length In-App Video Stream</div>
+            <div style="font-size: 0.75rem; color: var(--muted);">Stream complete songs via embedded stage player instead of 30s clips</div>
+          </div>
+          <input type="checkbox" id="prefFullSongMode" checked onchange="savePreferences()" />
+        </div>
+        <div class="setting-row">
+          <div>
             <div style="font-weight: 600;">Allow Play in Background</div>
             <div style="font-size: 0.75rem; color: var(--muted);">Keep radio playing when screen is locked or app is minimized</div>
           </div>
@@ -263,7 +278,7 @@
         <div class="setting-row">
           <div>
             <div style="font-weight: 600;">Auto-Play Next Shuffle Track</div>
-            <div style="font-size: 0.75rem; color: var(--muted);">Automatically advance station rotation</div>
+            <div style="font-size: 0.75rem; color: var(--muted);">Automatically advance station rotation when full song ends</div>
           </div>
           <input type="checkbox" id="prefAutoplay" checked onchange="savePreferences()" />
         </div>
@@ -295,12 +310,19 @@
 
   <!-- PLAYER BAR -->
   <div class="player-bar">
-    <div style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 48%;">
+    <div style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 55%;">
       <div id="nowPlayingTitle" style="font-weight: 600; font-size: 0.88rem;">Ready to Tune In</div>
       <div id="nowPlayingSub" style="font-size: 0.72rem; color: var(--muted);">VibeCast Radio</div>
     </div>
-    <audio id="audioPlayer" controls playsinline style="height: 36px; max-width: 50%;" onended="handleTrackEnded()"></audio>
+    <div id="barControls" style="display: flex; align-items: center; gap: 6px;">
+      <button id="barPlayPauseBtn" class="secondary" style="width: auto; padding: 6px 12px; margin: 0; font-size: 0.82rem; display: none;" onclick="toggleUnifiedPlayPause()">⏯</button>
+      <button id="barSkipBtn" style="width: auto; padding: 6px 12px; margin: 0; font-size: 0.82rem; display: none;" onclick="skipNextTrack()">⏭</button>
+    </div>
+    <audio id="audioPlayer" controls playsinline style="height: 36px; max-width: 45%; display: none;" onended="handleTrackEnded()"></audio>
   </div>
+
+  <!-- Load Official YouTube IFrame Player API for Full-Song End Detection & In-App Control -->
+  <script src="https://www.youtube.com/iframe_api"></script>
 
   <script>
     let currentUser = null;
@@ -312,6 +334,18 @@
     let searchTimeout = null;
     let searchCache = [];
     let wakeLock = null;
+    let ytPlayer = null;
+    let ytApiReady = false;
+
+    const PIPED_INSTANCES = [
+      'https://pipedapi.kavin.rocks',
+      'https://pipedapi.tokhmi.xyz',
+      'https://pipedapi.moomoo.me'
+    ];
+
+    function onYouTubeIframeAPIReady() {
+      ytApiReady = true;
+    }
 
     window.onload = () => {
       const savedUser = localStorage.getItem('vibecast_active_user');
@@ -328,8 +362,11 @@
 
       if (document.hidden && currentUser.prefs.backgroundPlay === false) {
         if (!audioEl.paused) audioEl.pause();
-      } else if (!document.hidden && currentUser.prefs.backgroundPlay !== false && currentTrack && audioEl.src && audioEl.paused) {
-        audioEl.play().catch(() => {});
+        if (ytPlayer && typeof ytPlayer.pauseVideo === 'function') ytPlayer.pauseVideo();
+      } else if (!document.hidden && currentUser.prefs.backgroundPlay !== false && currentTrack) {
+        if (audioEl.style.display !== 'none' && audioEl.src && audioEl.paused) {
+          audioEl.play().catch(() => {});
+        }
       }
     });
 
@@ -357,7 +394,7 @@
           wakeLock = null;
         }
         statusMsg.style.color = 'var(--muted)';
-        statusMsg.textContent = '⏸ Background playback disabled (audio pauses when app minimizes).';
+        statusMsg.textContent = '⏸ Background playback disabled.';
       }
       savePreferences();
     }
@@ -367,12 +404,24 @@
         navigator.mediaSession.metadata = new MediaMetadata({
           title: track.title,
           artist: track.artist,
-          album: 'VibeCast Radio',
+          album: 'VibeCast Full-Song Radio',
           artwork: track.artwork ? [{ src: track.artwork, sizes: '512x512', type: 'image/jpeg' }] : []
         });
-        navigator.mediaSession.setActionHandler('play', () => document.getElementById('audioPlayer').play());
-        navigator.mediaSession.setActionHandler('pause', () => document.getElementById('audioPlayer').pause());
+        navigator.mediaSession.setActionHandler('play', () => toggleUnifiedPlayPause(true));
+        navigator.mediaSession.setActionHandler('pause', () => toggleUnifiedPlayPause(false));
         navigator.mediaSession.setActionHandler('nexttrack', () => skipNextTrack());
+      }
+    }
+
+    function toggleUnifiedPlayPause(forcePlay) {
+      const audioEl = document.getElementById('audioPlayer');
+      if (ytPlayer && document.getElementById('ytStageWrap').style.display !== 'none') {
+        const state = ytPlayer.getPlayerState ? ytPlayer.getPlayerState() : -1;
+        if (forcePlay === true || state !== 1) ytPlayer.playVideo();
+        else ytPlayer.pauseVideo();
+      } else if (audioEl.src) {
+        if (forcePlay === true || audioEl.paused) audioEl.play();
+        else audioEl.pause();
       }
     }
 
@@ -414,6 +463,7 @@
       if (existing) {
         currentUser = JSON.parse(existing);
         if (currentUser.prefs.backgroundPlay === undefined) currentUser.prefs.backgroundPlay = true;
+        if (currentUser.prefs.fullSongMode === undefined) currentUser.prefs.fullSongMode = true;
       } else {
         currentUser = {
           id: identifier.toLowerCase(),
@@ -422,7 +472,7 @@
           bio: 'Music curator & VibeCast station creator.',
           provider: provider,
           paymentMethod: null,
-          prefs: { backgroundPlay: true, autoplay: true, aiBadges: true },
+          prefs: { fullSongMode: true, backgroundPlay: true, autoplay: true, aiBadges: true },
           stations: []
         };
       }
@@ -454,6 +504,7 @@
       document.getElementById('profDisplayName').value = currentUser.displayName || '';
       document.getElementById('profHandle').value = currentUser.handle || '';
       document.getElementById('profBio').value = currentUser.bio || '';
+      document.getElementById('prefFullSongMode').checked = currentUser.prefs.fullSongMode !== false;
       document.getElementById('prefBackgroundPlay').checked = currentUser.prefs.backgroundPlay !== false;
       document.getElementById('prefAutoplay').checked = currentUser.prefs.autoplay;
       document.getElementById('prefAiBadges').checked = currentUser.prefs.aiBadges;
@@ -502,6 +553,7 @@
 
     function savePreferences() {
       currentUser.prefs = {
+        fullSongMode: document.getElementById('prefFullSongMode').checked,
         backgroundPlay: document.getElementById('prefBackgroundPlay').checked,
         autoplay: document.getElementById('prefAutoplay').checked,
         aiBadges: document.getElementById('prefAiBadges').checked
@@ -524,27 +576,162 @@
       renderInfoBox();
     }
 
-    // LAUNCH YOUTUBE LYRICS VIDEO WINDOW
-    function launchYouTubeLyricsWindow() {
-      if (!currentTrack) return;
-      if (currentTrack.rawYoutubeUrl) {
-        window.open(currentTrack.rawYoutubeUrl, '_blank', 'noopener,noreferrer');
+    // CONTAINED IN-APP YOUTUBE RESOLVER & PLAYER (NEVER LEAVES APP)
+    async function resolveYouTubeVideoId(query) {
+      for (const base of PIPED_INSTANCES) {
+        try {
+          const controller = new AbortController();
+          const timer = setTimeout(() => controller.abort(), 3500);
+          const res = await fetch(`${base}/search?q=${encodeURIComponent(query)}&filter=videos`, { signal: controller.signal });
+          clearTimeout(timer);
+          if (!res.ok) continue;
+          const data = await res.json();
+          const items = (data.items || []).filter(i => i.url && i.url.includes('/watch?v='));
+          if (items.length > 0) {
+            return items.slice(0, 4).map(item => ({
+              videoId: item.url.split('v=')[1].split('&')[0],
+              title: item.title,
+              uploader: item.uploaderName || 'YouTube',
+              thumbnail: item.thumbnail
+            }));
+          }
+        } catch (e) {}
+      }
+      return [];
+    }
+
+    function mountContainedYouTubePlayer(videoId) {
+      const wrap = document.getElementById('ytStageWrap');
+      const artEl = document.getElementById('artStage');
+      const audioEl = document.getElementById('audioPlayer');
+
+      audioEl.pause();
+      audioEl.style.display = 'none';
+      artEl.style.display = 'none';
+      wrap.style.display = 'block';
+
+      document.getElementById('barPlayPauseBtn').style.display = 'inline-block';
+      document.getElementById('barSkipBtn').style.display = 'inline-block';
+
+      if (ytApiReady && window.YT && window.YT.Player) {
+        if (ytPlayer && typeof ytPlayer.loadVideoById === 'function') {
+          ytPlayer.loadVideoById(videoId);
+        } else {
+          ytPlayer = new YT.Player('ytPlayerContainer', {
+            videoId: videoId,
+            playerVars: {
+              autoplay: 1,
+              playsinline: 1,
+              rel: 0,
+              modestbranding: 1
+            },
+            events: {
+              onReady: (e) => e.target.playVideo(),
+              onStateChange: (e) => {
+                // YT.PlayerState.ENDED === 0 -> Auto advance full song queue!
+                if (e.data === 0) handleTrackEnded();
+              },
+              onError: () => {
+                // Fallback to next stream or audio preview if video blocks embedding
+                if (currentTrack && currentTrack.altVideos && currentTrack.altVideos.length > 1) {
+                  const nextAlt = currentTrack.altVideos[1].videoId;
+                  ytPlayer.loadVideoById(nextAlt);
+                } else if (currentTrack && currentTrack.mediaUrl) {
+                  fallbackToAudioPreview(currentTrack);
+                }
+              }
+            }
+          });
+        }
       } else {
-        const query = encodeURIComponent(`${currentTrack.artist} - ${currentTrack.title} Official Lyrics Video`);
-        window.open(`https://www.youtube.com/results?search_query=${query}`, '_blank', 'noopener,noreferrer');
+        document.getElementById('ytPlayerContainer').innerHTML =
+          `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1&rel=0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
       }
     }
 
-    // DYNAMIC LIVE LYRICS FETCHER (Lyrics.ovh API)
-    async function fetchLiveLyrics(track) {
-      if (track.lyricsFetched) return;
-      const box = document.getElementById('infoContent');
-      if (currentInfoTab === 'lyrics') {
-        box.innerHTML = `<div style="color: #b388ff;">⏳ Fetching live lyrics for "${track.title}"...</div>`;
+    function fallbackToAudioPreview(track) {
+      document.getElementById('ytStageWrap').style.display = 'none';
+      const artEl = document.getElementById('artStage');
+      const audioEl = document.getElementById('audioPlayer');
+      if (track.artwork) {
+        artEl.src = track.artwork;
+        artEl.style.display = 'block';
+      }
+      audioEl.src = track.mediaUrl;
+      audioEl.style.display = 'block';
+      audioEl.play().catch(() => {});
+    }
+
+    async function loadInAppYouTubeVideo(preferLyricsVideo = false) {
+      if (!currentTrack) return;
+      const picker = document.getElementById('ytAltPicker');
+      picker.style.display = 'block';
+      picker.innerHTML = `<div style="font-size: 0.8rem; color: #b388ff;">⏳ Loading full-length ${preferLyricsVideo ? 'lyric video' : 'stream'} inside VibeCast...</div>`;
+
+      // If custom track already has an explicit YouTube ID and user didn't ask to switch to lyrics video
+      if (currentTrack.youtubeVideoId && !preferLyricsVideo) {
+        picker.style.display = 'none';
+        mountContainedYouTubePlayer(currentTrack.youtubeVideoId);
+        return;
       }
 
+      const suffix = preferLyricsVideo ? 'Official Lyrics Video' : 'Official Audio';
+      const query = `${currentTrack.artist} - ${currentTrack.title} ${suffix}`;
+      const results = await resolveYouTubeVideoId(query);
+
+      if (results.length > 0) {
+        currentTrack.altVideos = results;
+        if (!preferLyricsVideo) {
+          currentTrack.youtubeVideoId = results[0].videoId;
+          saveUserState();
+        }
+        mountContainedYouTubePlayer(results[0].videoId);
+
+        // Render compact switcher inside the stage so user can pick another version without leaving the app
+        picker.innerHTML = `<div style="font-size: 0.74rem; color: var(--muted); margin-bottom: 6px;">Alternate In-App Streams (Tap to Switch):</div>` +
+          results.slice(0, 3).map(v => `
+            <div class="yt-result-card" onclick="mountContainedYouTubePlayer('${v.videoId}')">
+              <img src="${v.thumbnail || ''}" alt="" />
+              <div style="overflow: hidden;">
+                <div style="font-size: 0.8rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(v.title)}</div>
+                <div style="font-size: 0.7rem; color: var(--muted);">${escapeHtml(v.uploader)}</div>
+              </div>
+            </div>
+          `).join('');
+      } else {
+        picker.innerHTML = `<div style="font-size: 0.8rem; color: var(--muted);">Could not resolve full video stream. Playing audio preview.</div>`;
+        if (currentTrack.mediaUrl) fallbackToAudioPreview(currentTrack);
+      }
+    }
+
+    // LIVE LYRICS FETCHER (LRCLIB Primary + Lyrics.ovh Backup)
+    async function fetchLiveLyrics(track) {
+      if (track.lyricsFetched && track.lyrics) return;
+      const box = document.getElementById('infoContent');
+      if (currentInfoTab === 'lyrics') {
+        box.innerHTML = `<div style="color: #b388ff;">⏳ Fetching live lyrics for "${escapeHtml(track.title)}"...</div>`;
+      }
+
+      const cleanTitle = track.title.replace(/\(.*?\)|\[.*?\]/g, '').trim();
+
+      // 1. Primary: LRCLIB API (CORS-enabled, comprehensive catalog)
       try {
-        const cleanTitle = track.title.replace(/\(.*?\)|\[.*?\]/g, '').trim();
+        const lrcRes = await fetch(`https://lrclib.net/api/get?artist_name=${encodeURIComponent(track.artist)}&track_name=${encodeURIComponent(cleanTitle)}`);
+        if (lrcRes.ok) {
+          const lrcData = await lrcRes.json();
+          const text = lrcData.plainLyrics || (lrcData.syncedLyrics ? lrcData.syncedLyrics.replace(/\[\d{2}:\d{2}\.\d{2,3}\]/g, '').trim() : '');
+          if (text) {
+            track.lyrics = text;
+            track.lyricsFetched = true;
+            saveUserState();
+            if (currentTrack && currentTrack.id === track.id && currentInfoTab === 'lyrics') renderInfoBox();
+            return;
+          }
+        }
+      } catch (e) {}
+
+      // 2. Fallback: Lyrics.ovh API
+      try {
         const res = await fetch(`https://api.lyrics.ovh/v1/${encodeURIComponent(track.artist)}/${encodeURIComponent(cleanTitle)}`);
         if (res.ok) {
           const data = await res.json();
@@ -552,21 +739,15 @@
             track.lyrics = data.lyrics.trim();
             track.lyricsFetched = true;
             saveUserState();
-          } else {
-            track.lyrics = `No synced text lyrics found in database for "${track.title}".\n\nTap the button below to launch the live YouTube Lyrics video window.`;
-            track.lyricsFetched = true;
+            if (currentTrack && currentTrack.id === track.id && currentInfoTab === 'lyrics') renderInfoBox();
+            return;
           }
-        } else {
-          track.lyrics = `Live text lyrics unavailable for "${track.title}".\n\nTap the button below to launch the YouTube Lyrics video window.`;
-          track.lyricsFetched = true;
         }
-      } catch (e) {
-        track.lyrics = `Could not reach lyrics server.\n\nTap the button below to watch the live lyrics on YouTube.`;
-      }
+      } catch (e) {}
 
-      if (currentTrack && currentTrack.id === track.id && currentInfoTab === 'lyrics') {
-        renderInfoBox();
-      }
+      track.lyrics = `Plain text lyrics unavailable for "${track.title}".\n\nTap "Play Lyric Video on Stage" below to watch the synced lyric video right inside VibeCast.`;
+      track.lyricsFetched = true;
+      if (currentTrack && currentTrack.id === track.id && currentInfoTab === 'lyrics') renderInfoBox();
     }
 
     function renderInfoBox() {
@@ -574,7 +755,7 @@
       if (!currentTrack) return;
 
       if (currentInfoTab === 'lyrics') {
-        box.innerHTML = `<div style="margin-bottom: 12px;">${escapeHtml(currentTrack.lyrics || 'Loading live lyrics...')}</div><button class="yt-btn" onclick="launchYouTubeLyricsWindow()">▶ Launch YouTube Live Lyrics Window</button>`;
+        box.innerHTML = `<div style="margin-bottom: 12px;">${escapeHtml(currentTrack.lyrics || 'Loading live lyrics...')}</div><button class="yt-btn" onclick="loadInAppYouTubeVideo(true)">📺 Play Lyric Video on Stage</button>`;
       } else if (currentInfoTab === 'bio') {
         box.textContent = currentTrack.bio || "Artist biography unavailable.";
       } else if (currentInfoTab === 'tickets') {
@@ -693,7 +874,7 @@
 
       let fetchedTracks = [];
       try {
-        const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(artist)}&entity=musicTrack&limit=6`);
+        const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(artist)}&entity=musicTrack&limit=8`);
         const data = await res.json();
         if (data.results) {
           fetchedTracks = data.results.filter(r => r.previewUrl).map(t => ({
@@ -701,8 +882,7 @@
             artist: artist,
             title: t.trackName,
             mediaUrl: t.previewUrl,
-            videoEmbedUrl: '',
-            rawYoutubeUrl: '',
+            youtubeVideoId: '',
             artwork: t.artworkUrl100 ? t.artworkUrl100.replace('100x100', '600x600') : '',
             lyrics: '',
             lyricsFetched: false,
@@ -722,7 +902,7 @@
 
       document.getElementById('artistName').value = '';
       updateUI();
-      showToast('trackToast', `Seeded ${artist} with live lyrics & bio!`);
+      showToast('trackToast', `Seeded ${artist} for full-length playback!`);
     }
 
     function extractYouTubeId(url) {
@@ -746,7 +926,6 @@
       if (!stationId || !title) return alert('Select a channel and enter a title.');
 
       const videoId = extractYouTubeId(ytUrl);
-      const videoEmbedUrl = videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1` : '';
 
       const station = stations.find(s => s.id == stationId);
       const track = {
@@ -754,8 +933,7 @@
         title,
         artist,
         mediaUrl: audioUrl || '',
-        videoEmbedUrl: videoEmbedUrl,
-        rawYoutubeUrl: ytUrl || '',
+        youtubeVideoId: videoId,
         artwork: '',
         lyrics: lyrics || '',
         lyricsFetched: Boolean(lyrics),
@@ -822,33 +1000,24 @@
         if (track.disclosure.audio) badges += '<span class="ai-badge">AI Audio</span>';
         if (track.disclosure.lyrics) badges += '<span class="ai-badge">AI Lyrics</span>';
         if (track.disclosure.artwork) badges += '<span class="ai-badge">AI Video/Art</span>';
-        if (!badges) badges = '<span class="ai-badge" style="color:#10b981; border-color:#10b981;">Human / Catalog</span>';
+        if (!badges) badges = '<span class="ai-badge" style="color:#10b981; border-color:#10b981;">Full-Song Stream</span>';
       }
       document.getElementById('stageBadges').innerHTML = badges;
 
-      const videoEl = document.getElementById('videoStage');
-      const iframeEl = document.getElementById('iframeStage');
-      const artEl = document.getElementById('artStage');
+      // Reset players
       const audioEl = document.getElementById('audioPlayer');
+      audioEl.pause();
+      audioEl.style.display = 'none';
+      document.getElementById('artStage').style.display = 'none';
+      document.getElementById('ytAltPicker').style.display = 'none';
 
-      videoEl.pause(); videoEl.style.display = 'none';
-      iframeEl.src = ''; iframeEl.style.display = 'none';
-      audioEl.pause(); audioEl.style.display = 'none';
-      artEl.style.display = 'none';
-
-      if (track.videoEmbedUrl) {
-        iframeEl.src = track.videoEmbedUrl;
-        iframeEl.style.display = 'block';
-      } else if (track.artwork) {
-        artEl.src = track.artwork;
-        artEl.style.display = 'block';
-        audioEl.src = track.mediaUrl;
-        audioEl.style.display = 'block';
-        audioEl.play().catch(() => {});
+      // Play full song inside the app's stage player
+      if (track.youtubeVideoId) {
+        mountContainedYouTubePlayer(track.youtubeVideoId);
+      } else if (currentUser.prefs.fullSongMode !== false) {
+        loadInAppYouTubeVideo(false);
       } else {
-        audioEl.src = track.mediaUrl;
-        audioEl.style.display = 'block';
-        audioEl.play().catch(() => {});
+        fallbackToAudioPreview(track);
       }
 
       updateMediaSession(track);
