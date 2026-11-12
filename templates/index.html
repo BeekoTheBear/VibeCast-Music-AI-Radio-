@@ -16,17 +16,27 @@
       --badge: #231d3b;
     }
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { margin: 0; background: var(--bg); color: var(--text); padding: 16px; padding-bottom: 90px; }
-    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
+    body { margin: 0; background: var(--bg); color: var(--text); padding: 16px; padding-bottom: 110px; }
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
     h1 { font-size: 1.25rem; margin: 0; letter-spacing: -0.5px; }
     .status-dot { height: 10px; width: 10px; background: #10b981; border-radius: 50%; display: inline-block; margin-right: 6px; }
     .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 16px; position: relative; }
     h2 { font-size: 1rem; margin: 0 0 12px 0; color: var(--text); }
-    input, select, button { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: #0d0f14; color: var(--text); font-size: 0.95rem; margin-bottom: 10px; }
+    input, select, textarea, button { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: #0d0f14; color: var(--text); font-size: 0.95rem; margin-bottom: 10px; }
+    textarea { resize: vertical; min-height: 60px; }
     button { background: var(--accent); border: none; font-weight: 600; cursor: pointer; transition: 0.2s; }
     button:active { background: var(--accent-hover); transform: scale(0.99); }
-    
-    /* Dynamic Autofill Dropdown */
+    button.secondary { background: #262b38; color: var(--text); }
+    button.store-btn { background: #10b981; color: white; margin-top: 6px; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
+    .tab-btn { flex: 1; padding: 8px 6px; background: #0d0f14; border: 1px solid var(--border); border-radius: 8px; color: var(--muted); font-size: 0.78rem; white-space: nowrap; margin: 0; }
+    .tab-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Autofill Dropdown */
     .autocomplete-container { position: relative; width: 100%; }
     .suggestions-list {
       position: absolute; top: 100%; left: 0; right: 0;
@@ -36,16 +46,19 @@
     }
     .suggestion-item { padding: 10px 12px; font-size: 0.9rem; cursor: pointer; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
     .suggestion-item:hover { background: var(--accent); color: white; }
-    .suggestion-item img { width: 30px; height: 30px; border-radius: 4px; object-fit: cover; }
+    .suggestion-item img { width: 32px; height: 32px; border-radius: 4px; object-fit: cover; }
 
-    .slider-container { margin: 10px 0; font-size: 0.85rem; color: var(--muted); }
-    .slider-container input { padding: 0; }
+    /* Now Playing Stage */
+    .media-stage { background: #0a0c10; border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 12px; text-align: center; }
+    .media-stage video, .media-stage img { width: 100%; max-height: 200px; border-radius: 8px; object-fit: cover; display: none; margin: 0 auto 10px auto; }
+    .info-box { background: #0d0f14; border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-size: 0.85rem; color: var(--muted); text-align: left; max-height: 150px; overflow-y: auto; white-space: pre-wrap; margin-top: 8px; }
+
     .checkbox-group { display: flex; flex-direction: column; gap: 8px; margin: 10px 0 14px 0; font-size: 0.88rem; color: var(--muted); }
     .checkbox-group label { display: flex; align-items: center; gap: 10px; cursor: pointer; }
     .checkbox-group input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); }
-    .station-item { padding: 12px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-    .ai-badge { background: var(--badge); color: #b388ff; font-size: 0.72rem; padding: 3px 8px; border-radius: 6px; border: 1px solid #3f2e7a; font-weight: 600; }
-    .player-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #12151e; border-top: 1px solid var(--border); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; z-index: 100; }
+    .station-item { padding: 12px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .ai-badge { background: var(--badge); color: #b388ff; font-size: 0.7rem; padding: 2px 7px; border-radius: 6px; border: 1px solid #3f2e7a; font-weight: 600; display: inline-block; margin-right: 4px; margin-top: 4px; }
+    .player-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #12151e; border-top: 1px solid var(--border); padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; z-index: 100; }
     .toast { font-size: 0.85rem; color: #10b981; margin-top: 4px; display: none; }
   </style>
 </head>
@@ -53,45 +66,88 @@
 
   <header>
     <h1>📻 VibeCast: Music-AI-Radio</h1>
-    <span style="font-size: 0.8rem; color: var(--muted);"><span class="status-dot"></span>Live</span>
+    <span style="font-size: 0.8rem; color: var(--muted);"><span class="status-dot"></span>Studio Live</span>
   </header>
+
+  <!-- NOW PLAYING STAGE (Video, Lyrics, Bio, Tickets, Merch) -->
+  <div class="card" id="nowPlayingCard" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+      <span style="font-size: 0.78rem; color: #b388ff; font-weight: 600;">ON AIR DECK</span>
+      <button class="secondary" style="width: auto; padding: 5px 10px; font-size: 0.78rem; margin: 0;" onclick="skipNextTrack()">⏭ Next Shuffle</button>
+    </div>
+
+    <div class="media-stage">
+      <video id="videoStage" controls playsinline></video>
+      <img id="artStage" src="" alt="Artwork" />
+      <div id="stageTitle" style="font-weight: 700; font-size: 1rem;">Track Title</div>
+      <div id="stageArtist" style="font-size: 0.85rem; color: var(--muted); margin-bottom: 6px;">Artist</div>
+      <div id="stageBadges"></div>
+    </div>
+
+    <!-- Interactive Track Information & Commerce Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" id="btnLyrics" onclick="switchInfoTab('lyrics')">📜 Lyrics</button>
+      <button class="tab-btn" id="btnBio" onclick="switchInfoTab('bio')">📖 Bio</button>
+      <button class="tab-btn" id="btnTickets" onclick="switchInfoTab('tickets')">🎟️ Tickets</button>
+      <button class="tab-btn" id="btnMerch" onclick="switchInfoTab('merch')">👕 Merch</button>
+    </div>
+    <div id="infoContent" class="info-box">Select a station to load info...</div>
+  </div>
 
   <!-- 1. Create Station -->
   <div class="card">
     <h2>1. Launch Radio Station</h2>
-    <input type="text" id="stationName" placeholder="Station Name (e.g., Global Indie Vibe)" />
-    <input type="text" id="stationGenre" placeholder="Genre / Vibe (e.g., Worldwide Rotation)" />
+    <input type="text" id="stationName" placeholder="Station Name (e.g., Ultimate Festival Mix)" />
+    <input type="text" id="stationGenre" placeholder="Vibe / Genre (e.g., Live Tour & Merch Stream)" />
     <button onclick="createStation()">Create Station</button>
-    <div id="stationToast" class="toast">Station created successfully!</div>
+    <div id="stationToast" class="toast">Station created!</div>
   </div>
 
-  <!-- 2. Dynamic Artist Search & Rotation Pool -->
+  <!-- 2. Seed Station -->
   <div class="card">
-    <h2>2. Dynamic Artist Lookup & Rotation</h2>
+    <h2>2. Add Music & Artist Events</h2>
     <select id="stationSelect">
       <option value="">-- Select Target Station --</option>
     </select>
-    
-    <!-- Live Global Search Input -->
-    <div class="autocomplete-container">
-      <input type="text" id="artistName" placeholder="Type ANY artist worldwide (e.g., Alec Benjamin)" oninput="searchGlobalArtists(this.value)" autocomplete="off" />
-      <div id="artistSuggestions" class="suggestions-list"></div>
+
+    <div class="tabs">
+      <button class="tab-btn active" id="tabGlobalBtn" onclick="switchSourceTab('global')">🌍 Global Artist Seed</button>
+      <button class="tab-btn" id="tabCustomBtn" onclick="switchSourceTab('custom')">🎙️ My Created Files & Merch</button>
     </div>
 
-    <div class="slider-container">
-      <label for="trackCount">Top Hits to Mix in: <span id="trackCountVal">5</span></label>
-      <input type="range" id="trackCount" min="3" max="10" value="5" oninput="document.getElementById('trackCountVal').textContent=this.value" />
+    <!-- TAB A: Global Artist Search -->
+    <div id="panelGlobal" class="tab-panel active">
+      <div class="autocomplete-container">
+        <input type="text" id="artistName" placeholder="Search ANY artist worldwide..." oninput="searchGlobalArtists(this.value)" autocomplete="off" />
+        <div id="artistSuggestions" class="suggestions-list"></div>
+      </div>
+      <button onclick="addGlobalArtistSeed()">Seed Artist & Tour Dates into Rotation</button>
     </div>
 
-    <div class="checkbox-group">
-      <strong style="color: var(--text); font-size: 0.82rem;">Mandatory AI Disclosure:</strong>
-      <label><input type="checkbox" id="aiAudio" /> AI-Generated Audio</label>
-      <label><input type="checkbox" id="aiLyrics" /> AI-Generated Lyrics</label>
-      <label><input type="checkbox" id="aiArtwork" /> AI-Generated Cover Art</label>
+    <!-- TAB B: Custom Files, Tickets & Merch -->
+    <div id="panelCustom" class="tab-panel">
+      <input type="text" id="customTitle" placeholder="Song / Video Title" />
+      <input type="text" id="customArtist" placeholder="Artist / Creator Name" />
+      
+      <input type="file" id="customLocalFile" accept="audio/*,video/*" style="padding: 8px;" />
+      <input type="url" id="customMediaUrl" placeholder="Or paste direct media URL (.mp3 / .mp4)" />
+      
+      <textarea id="customLyrics" placeholder="Song lyrics..."></textarea>
+      <textarea id="customBio" placeholder="Artist history / bio..."></textarea>
+      <input type="text" id="customTickets" placeholder="Upcoming Event / Ticket Link (e.g., https://bandsintown.com/...)" />
+      <input type="text" id="customMerch" placeholder="Merchandise Store Link (e.g., https://yourstore.com/shirt)" />
+
+      <div class="checkbox-group">
+        <strong style="color: var(--text); font-size: 0.82rem;">Mandatory AI Disclosure:</strong>
+        <label><input type="checkbox" id="aiAudio" checked /> AI-Generated Audio / Vocals</label>
+        <label><input type="checkbox" id="aiLyrics" /> AI-Generated Lyrics</label>
+        <label><input type="checkbox" id="aiArtwork" /> AI-Generated Video / Cover Art</label>
+      </div>
+
+      <button onclick="addCustomCreation()">Add Track, Tickets & Merch</button>
     </div>
 
-    <button onclick="addArtistSeed()">Seed Artist & Shuffle Rotation</button>
-    <div id="trackToast" class="toast">Artist added to station pool!</div>
+    <div id="trackToast" class="toast">Added successfully!</div>
   </div>
 
   <!-- 3. Live Stations Feed -->
@@ -104,20 +160,60 @@
 
   <!-- Persistent Player Bar -->
   <div class="player-bar">
-    <div>
-      <div id="nowPlayingTitle" style="font-weight: 600; font-size: 0.9rem;">Select a station to tune in</div>
-      <div id="nowPlayingSub" style="font-size: 0.75rem; color: var(--muted);">VibeCast Shuffle Radio</div>
+    <div style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 48%;">
+      <div id="nowPlayingTitle" style="font-weight: 600; font-size: 0.88rem;">Ready to Tune In</div>
+      <div id="nowPlayingSub" style="font-size: 0.72rem; color: var(--muted);">VibeCast Radio</div>
     </div>
-    <audio id="audioPlayer" controls style="height: 36px; max-width: 170px;"></audio>
+    <audio id="audioPlayer" controls style="height: 36px; max-width: 50%;" onended="skipNextTrack()"></audio>
   </div>
 
   <script>
     const stations = [];
+    let activeStationId = null;
+    let currentTrack = null;
+    let currentInfoTab = 'lyrics';
     let searchTimeout = null;
-    let selectedArtistTracks = [];
+    let searchCache = [];
 
-    // Live global artist lookup using public music catalog API
-    async function searchGlobalArtists(query) {
+    function switchSourceTab(tab) {
+      document.getElementById('tabGlobalBtn').classList.toggle('active', tab === 'global');
+      document.getElementById('tabCustomBtn').classList.toggle('active', tab === 'custom');
+      document.getElementById('panelGlobal').classList.toggle('active', tab === 'global');
+      document.getElementById('panelCustom').classList.toggle('active', tab === 'custom');
+    }
+
+    function switchInfoTab(tab) {
+      currentInfoTab = tab;
+      ['lyrics', 'bio', 'tickets', 'merch'].forEach(t => {
+        document.getElementById(`btn${t.charAt(0).toUpperCase() + t.slice(1)}`).classList.toggle('active', t === tab);
+      });
+      renderInfoBox();
+    }
+
+    function renderInfoBox() {
+      const box = document.getElementById('infoContent');
+      if (!currentTrack) return;
+
+      if (currentInfoTab === 'lyrics') {
+        box.textContent = currentTrack.lyrics || "Lyrics not provided.";
+      } else if (currentInfoTab === 'bio') {
+        box.textContent = currentTrack.bio || "Artist biography unavailable.";
+      } else if (currentInfoTab === 'tickets') {
+        if (currentTrack.ticketsUrl) {
+          box.innerHTML = `🎟️ <strong>Upcoming Tour & Events:</strong><br><br>Catch ${currentTrack.artist} live on tour!<br><br><a href="${currentTrack.ticketsUrl}" target="_blank"><button class="store-btn">🎟️ Buy Tickets Now</button></a>`;
+        } else {
+          box.textContent = `No upcoming event links listed for ${currentTrack.artist}.`;
+        }
+      } else if (currentInfoTab === 'merch') {
+        if (currentTrack.merchUrl) {
+          box.innerHTML = `👕 <strong>Official Merchandise:</strong><br><br>Support ${currentTrack.artist} with official apparel and gear!<br><br><a href="${currentTrack.merchUrl}" target="_blank"><button class="store-btn">🛍️ Shop Artist Merch</button></a>`;
+        } else {
+          box.textContent = `No merchandise store linked for ${currentTrack.artist} yet.`;
+        }
+      }
+    }
+
+    function searchGlobalArtists(query) {
       const box = document.getElementById('artistSuggestions');
       if (!query || query.trim().length < 2) {
         box.style.display = 'none';
@@ -127,42 +223,34 @@
       clearTimeout(searchTimeout);
       searchTimeout = setTimeout(async () => {
         try {
-          const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=10`);
+          const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=8`);
           const data = await res.json();
-          
           if (!data.results || data.results.length === 0) {
             box.style.display = 'none';
             return;
           }
-
-          // Cache fetched tracks for seeding
-          selectedArtistTracks = data.results;
-
-          // Render live dropdown suggestions
-          box.innerHTML = data.results.map((track, idx) => `
-            <div class="suggestion-item" onclick="selectArtistFromSearch(${idx})">
-              <img src="${track.artworkUrl100 || ''}" alt="art" />
+          searchCache = data.results;
+          box.innerHTML = data.results.map((item, idx) => `
+            <div class="suggestion-item" onclick="selectArtist(${idx})">
+              <img src="${item.artworkUrl100 || ''}" alt="" />
               <div>
-                <div style="font-weight: 600;">${track.artistName}</div>
-                <div style="font-size: 0.75rem; color: var(--muted);">${track.trackName}</div>
+                <div style="font-weight: 600;">${item.artistName}</div>
+                <div style="font-size: 0.75rem; color: var(--muted);">${item.trackName}</div>
               </div>
             </div>
           `).join('');
           box.style.display = 'block';
-        } catch (e) {
-          console.error("Search error:", e);
-        }
-      }, 300); // Debounce typing
+        } catch (e) { console.error(e); }
+      }, 300);
     }
 
-    function selectArtistFromSearch(index) {
-      const track = selectedArtistTracks[index];
-      if (!track) return;
-      document.getElementById('artistName').value = track.artistName;
+    function selectArtist(idx) {
+      const item = searchCache[idx];
+      if (!item) return;
+      document.getElementById('artistName').value = item.artistName;
       document.getElementById('artistSuggestions').style.display = 'none';
     }
 
-    // Hide dropdown when clicking outside
     document.addEventListener('click', (e) => {
       if (!e.target.closest('.autocomplete-container')) {
         document.getElementById('artistSuggestions').style.display = 'none';
@@ -179,9 +267,9 @@
     function createStation() {
       const name = document.getElementById('stationName').value.trim();
       const genre = document.getElementById('stationGenre').value.trim();
-      if (!name) return alert('Please enter a station name.');
+      if (!name) return alert('Enter a station name.');
 
-      const station = { id: Date.now(), name, genre: genre || 'Global Radio', artists: [], rotationPool: [] };
+      const station = { id: Date.now(), name, genre: genre || 'Live Tour & Merch Mix', artists: [], tracks: [] };
       stations.push(station);
 
       document.getElementById('stationName').value = '';
@@ -190,74 +278,160 @@
       showToast('stationToast', `Station "${name}" is live!`);
     }
 
-    async function addArtistSeed() {
+    async function addGlobalArtistSeed() {
       const stationId = document.getElementById('stationSelect').value;
       const artist = document.getElementById('artistName').value.trim();
-      const count = parseInt(document.getElementById('trackCount').value);
-
-      if (!stationId || !artist) return alert('Select a station and enter an artist name.');
+      if (!stationId || !artist) return alert('Select a station and enter an artist.');
 
       const station = stations.find(s => s.id == stationId);
-      if (!station) return;
 
-      // Dynamically fetch real tracks from global database for this artist
-      let artistTracks = [];
+      let artistBio = `${artist} — Featured artist on VibeCast.`;
       try {
-        const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(artist)}&entity=song&limit=${count}`);
+        const wikiRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(artist)}`);
+        if (wikiRes.ok) {
+          const wikiData = await wikiRes.json();
+          if (wikiData.extract) artistBio = wikiData.extract;
+        }
+      } catch (e) {}
+
+      let fetchedTracks = [];
+      try {
+        const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(artist)}&limit=5`);
         const data = await res.json();
-        if (data.results && data.results.length > 0) {
-          artistTracks = data.results.map(t => ({
-            title: `${t.trackName} - ${t.artistName}`,
+        if (data.results) {
+          fetchedTracks = data.results.filter(r => r.previewUrl).map(t => ({
+            title: t.trackName,
             artist: t.artistName,
-            url: t.previewUrl, // Real 30-sec streaming audio preview
-            disclosure: {
-              audio: document.getElementById('aiAudio').checked,
-              lyrics: document.getElementById('aiLyrics').checked,
-              artwork: document.getElementById('aiArtwork').checked
-            }
+            mediaUrl: t.previewUrl,
+            isVideo: false,
+            artwork: t.artworkUrl100 ? t.artworkUrl100.replace('100x100', '400x400') : '',
+            lyrics: `🎵 "${t.trackName}" by ${t.artistName}\nAlbum: ${t.collectionName || 'Single'}`,
+            bio: artistBio,
+            ticketsUrl: `https://www.bandsintown.com/search?query=${encodeURIComponent(artist)}`,
+            merchUrl: `https://www.google.com/search?q=${encodeURIComponent(artist + ' official merchandise store')}`,
+            disclosure: { audio: false, lyrics: false, artwork: false }
           }));
         }
-      } catch (e) {
-        console.error("Fetch tracks error:", e);
-      }
+      } catch (e) { console.error(e); }
 
-      // Fallback if search returns nothing
-      if (artistTracks.length === 0) {
-        artistTracks.push({
-          title: `${artist} - Custom Track (Shuffle Mix)`,
-          artist: artist,
-          url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-          disclosure: {
-            audio: document.getElementById('aiAudio').checked,
-            lyrics: document.getElementById('aiLyrics').checked,
-            artwork: document.getElementById('aiArtwork').checked
-          }
-        });
-      }
+      if (fetchedTracks.length === 0) return alert('No playable tracks found.');
 
-      station.artists.push({ name: artist, trackCount: artistTracks.length });
-      station.rotationPool.push(...artistTracks);
+      station.artists.push(artist);
+      station.tracks.push(...fetchedTracks);
 
       document.getElementById('artistName').value = '';
       updateUI();
-      showToast('trackToast', `Added ${artistTracks.length} tracks for ${artist} into rotation!`);
+      showToast('trackToast', `Added ${fetchedTracks.length} tracks + tour links for ${artist}!`);
     }
 
-    function playRandomStationTrack(stationId) {
-      const station = stations.find(s => s.id == stationId);
-      if (!station || station.rotationPool.length === 0) {
-        return alert('This station has no artists seeded yet!');
+    function addCustomCreation() {
+      const stationId = document.getElementById('stationSelect').value;
+      const title = document.getElementById('customTitle').value.trim();
+      const artist = document.getElementById('customArtist').value.trim() || 'Independent Creator';
+      const fileInput = document.getElementById('customLocalFile');
+      const urlInput = document.getElementById('customMediaUrl').value.trim();
+      const lyrics = document.getElementById('customLyrics').value.trim();
+      const bio = document.getElementById('customBio').value.trim();
+      const ticketsUrl = document.getElementById('customTickets').value.trim();
+      const merchUrl = document.getElementById('customMerch').value.trim();
+
+      if (!stationId || !title) return alert('Select a station and enter a title.');
+
+      let mediaUrl = urlInput;
+      let isVideo = urlInput.toLowerCase().endsWith('.mp4');
+
+      if (fileInput.files && fileInput.files[0]) {
+        const file = fileInput.files[0];
+        mediaUrl = URL.createObjectURL(file);
+        isVideo = file.type.startsWith('video/');
       }
 
-      const randomIndex = Math.floor(Math.random() * station.rotationPool.length);
-      const track = station.rotationPool[randomIndex];
+      if (!mediaUrl) return alert('Provide an audio/video file or media URL.');
 
+      const station = stations.find(s => s.id == stationId);
+      const track = {
+        title,
+        artist,
+        mediaUrl,
+        isVideo,
+        artwork: '',
+        lyrics: lyrics || 'Original custom track.',
+        bio: bio || `Created by ${artist}.`,
+        ticketsUrl,
+        merchUrl,
+        disclosure: {
+          audio: document.getElementById('aiAudio').checked,
+          lyrics: document.getElementById('aiLyrics').checked,
+          artwork: document.getElementById('aiArtwork').checked
+        }
+      };
+
+      if (!station.artists.includes(artist)) station.artists.push(artist);
+      station.tracks.push(track);
+
+      document.getElementById('customTitle').value = '';
+      fileInput.value = '';
+      document.getElementById('customMediaUrl').value = '';
+      document.getElementById('customLyrics').value = '';
+      document.getElementById('customBio').value = '';
+      document.getElementById('customTickets').value = '';
+      document.getElementById('customMerch').value = '';
+
+      updateUI();
+      showToast('trackToast', `"${title}" added with tickets & merch!`);
+    }
+
+    function playStation(stationId) {
+      activeStationId = stationId;
+      skipNextTrack();
+    }
+
+    function skipNextTrack() {
+      const station = stations.find(s => s.id == activeStationId);
+      if (!station || station.tracks.length === 0) return alert('Add tracks to this station first!');
+
+      const track = station.tracks[Math.floor(Math.random() * station.tracks.length)];
+      currentTrack = track;
+
+      document.getElementById('nowPlayingCard').style.display = 'block';
+      document.getElementById('stageTitle').textContent = track.title;
+      document.getElementById('stageArtist').textContent = `${track.artist} • ${station.name}`;
       document.getElementById('nowPlayingTitle').textContent = track.title;
-      document.getElementById('nowPlayingSub').textContent = `${station.name} • ${station.artists.length} Artist(s) in Rotation`;
-      
-      const player = document.getElementById('audioPlayer');
-      player.src = track.url;
-      player.play();
+      document.getElementById('nowPlayingSub').textContent = track.artist;
+
+      let badges = '';
+      if (track.disclosure.audio) badges += '<span class="ai-badge">AI Audio</span>';
+      if (track.disclosure.lyrics) badges += '<span class="ai-badge">AI Lyrics</span>';
+      if (track.disclosure.artwork) badges += '<span class="ai-badge">AI Video/Art</span>';
+      if (!badges) badges = '<span class="ai-badge" style="color:#10b981; border-color:#10b981;">Human / Catalog</span>';
+      document.getElementById('stageBadges').innerHTML = badges;
+
+      const videoEl = document.getElementById('videoStage');
+      const artEl = document.getElementById('artStage');
+      const audioEl = document.getElementById('audioPlayer');
+
+      if (track.isVideo) {
+        audioEl.pause();
+        audioEl.style.display = 'none';
+        artEl.style.display = 'none';
+        videoEl.style.display = 'block';
+        videoEl.src = track.mediaUrl;
+        videoEl.play();
+      } else {
+        videoEl.pause();
+        videoEl.style.display = 'none';
+        audioEl.style.display = 'block';
+        if (track.artwork) {
+          artEl.src = track.artwork;
+          artEl.style.display = 'block';
+        } else {
+          artEl.style.display = 'none';
+        }
+        audioEl.src = track.mediaUrl;
+        audioEl.play();
+      }
+
+      renderInfoBox();
     }
 
     function updateUI() {
@@ -267,21 +441,16 @@
       select.innerHTML = '<option value="">-- Select Target Station --</option>' +
         stations.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
 
-      if (stations.length === 0) {
-        list.innerHTML = '<p style="color: var(--muted); font-size: 0.88rem;">No active stations yet. Create one above!</p>';
-        return;
-      }
+      if (stations.length === 0) return;
 
       list.innerHTML = stations.map(s => `
         <div class="station-item">
           <div>
             <strong>${s.name}</strong>
-            <div style="font-size: 0.8rem; color: var(--muted);">${s.genre} • ${s.artists.length} Artist(s) • ${s.rotationPool.length} Track Pool</div>
-            <div style="margin-top: 4px; font-size: 0.75rem; color: #b388ff;">
-              Artists: ${s.artists.map(a => `${a.name} (${a.trackCount})`).join(', ') || 'None'}
-            </div>
+            <div style="font-size: 0.8rem; color: var(--muted);">${s.genre} • ${s.tracks.length} tracks</div>
+            <div style="font-size: 0.75rem; color: #b388ff; margin-top: 3px;">Artists: ${s.artists.join(', ') || 'None'}</div>
           </div>
-          <button style="width: auto; padding: 8px 14px; margin: 0;" onclick="playRandomStationTrack(${s.id})">▶ Tune In</button>
+          <button style="width: auto; padding: 8px 14px; margin: 0;" onclick="playStation(${s.id})">▶ Tune In</button>
         </div>
       `).join('');
     }
