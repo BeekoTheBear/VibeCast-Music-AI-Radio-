@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>VibeCast: Music-AI-Radio</title>
+  <style>
+    :root {
+      --bg: #0d0f14;
+      --card: #161a23;
+      --accent: #7c4dff;
+      --accent-hover: #651fff;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --border: #262b38;
+      --badge: #231d3b;
+    }
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { margin: 0; background: var(--bg); color: var(--text); padding: 16px; padding-bottom: 90px; }
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
+    h1 { font-size: 1.25rem; margin: 0; letter-spacing: -0.5px; }
+    .status-dot { height: 10px; width: 10px; background: #10b981; border-radius: 50%; display: inline-block; margin-right: 6px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 16px; }
+    h2 { font-size: 1rem; margin: 0 0 12px 0; color: var(--text); }
+    input, select, button { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: #0d0f14; color: var(--text); font-size: 0.95rem; margin-bottom: 10px; }
+    button { background: var(--accent); border: none; font-weight: 600; cursor: pointer; transition: 0.2s; }
+    button:active { background: var(--accent-hover); transform: scale(0.99); }
+    .checkbox-group { display: flex; flex-direction: column; gap: 8px; margin: 10px 0 14px 0; font-size: 0.88rem; color: var(--muted); }
+    .checkbox-group label { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+    .checkbox-group input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); }
+    .station-item { padding: 12px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .ai-badge { background: var(--badge); color: #b388ff; font-size: 0.72rem; padding: 3px 8px; border-radius: 6px; border: 1px solid #3f2e7a; font-weight: 600; }
+    .player-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #12151e; border-top: 1px solid var(--border); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; }
+    .toast { font-size: 0.85rem; color: #10b981; margin-top: 4px; display: none; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>📻 VibeCast: Music-AI-Radio</h1>
+    <span style="font-size: 0.8rem; color: var(--muted);"><span class="status-dot"></span>Live</span>
+  </header>
+
+  <!-- Create Station Card -->
+  <div class="card">
+    <h2>1. Launch a Radio Station</h2>
+    <input type="text" id="stationName" placeholder="Station Name (e.g., Midnight Synthwave)" />
+    <input type="text" id="stationGenre" placeholder="Genre / Vibe (e.g., Lo-Fi AI Beats)" />
+    <button onclick="createStation()">Create Station</button>
+    <div id="stationToast" class="toast">Station created!</div>
+  </div>
+
+  <!-- Upload Track with AI Compliance -->
+  <div class="card">
+    <h2>2. Queue Track & AI Disclosure</h2>
+    <select id="stationSelect">
+      <option value="">-- Select Target Station --</option>
+    </select>
+    <input type="text" id="trackTitle" placeholder="Track Title" />
+    <input type="text" id="artistName" placeholder="Creator / AI Prompt Artist" />
+    <input type="url" id="audioUrl" placeholder="Audio Stream URL (.mp3 / .wav)" />
+
+    <div class="checkbox-group">
+      <strong style="color: var(--text); font-size: 0.82rem;">Mandatory AI Disclosure:</strong>
+      <label><input type="checkbox" id="aiAudio" checked /> AI-Generated Audio</label>
+      <label><input type="checkbox" id="aiLyrics" /> AI-Generated Lyrics</label>
+      <label><input type="checkbox" id="aiArtwork" /> AI-Generated Cover Art</label>
+    </div>
+
+    <button onclick="uploadTrack()">Add Track to Station</button>
+    <div id="trackToast" class="toast">Track queued with AI disclosures!</div>
+  </div>
+
+  <!-- Live Stations Feed -->
+  <div class="card">
+    <h2>3. Live On-Air Stations</h2>
+    <div id="stationsList">
+      <p style="color: var(--muted); font-size: 0.88rem;">No stations live yet. Create one above!</p>
+    </div>
+  </div>
+
+  <!-- Persistent Mini Audio Player -->
+  <div class="player-bar">
+    <div>
+      <div id="nowPlayingTitle" style="font-weight: 600; font-size: 0.9rem;">Select a station to tune in</div>
+      <div id="nowPlayingSub" style="font-size: 0.75rem; color: var(--muted);">VibeCast Social Radio</div>
+    </div>
+    <audio id="audioPlayer" controls style="height: 36px; max-width: 170px;"></audio>
+  </div>
+
+  <script>
+    const stations = [];
+
+    function showToast(id, msg) {
+      const el = document.getElementById(id);
+      el.textContent = msg;
+      el.style.display = 'block';
+      setTimeout(() => el.style.display = 'none', 3000);
+    }
+
+    async function createStation() {
+      const name = document.getElementById('stationName').value.trim();
+      const genre = document.getElementById('stationGenre').value.trim();
+      if (!name) return alert('Enter a station name');
+
+      const station = { id: Date.now(), name, genre: genre || 'AI Radio', tracks: [] };
+      stations.push(station);
+
+      // Sync with Flask backend if /stations route exists
+      try {
+        await fetch('/stations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(station)
+        });
+      } catch (e) { /* Fallback to local UI state */ }
+
+      document.getElementById('stationName').value = '';
+      document.getElementById('stationGenre').value = '';
+      updateUI();
+      showToast('stationToast', `Station "${name}" is live!`);
+    }
+
+    async function uploadTrack() {
+      const stationId = document.getElementById('stationSelect').value;
+      const title = document.getElementById('trackTitle').value.trim();
+      const artist = document.getElementById('artistName').value.trim();
+      const url = document.getElementById('audioUrl').value.trim();
+
+      if (!stationId || !title) return alert('Select a station and enter a track title.');
+
+      const disclosure = {
+        audio: document.getElementById('aiAudio').checked,
+        lyrics: document.getElementById('aiLyrics').checked,
+        artwork: document.getElementById('aiArtwork').checked
+      };
+
+      const track = { title, artist: artist || 'VibeCast Creator', url, disclosure };
+      const station = stations.find(s => s.id == stationId);
+      if (station) station.tracks.push(track);
+
+      try {
+        await fetch('/tracks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ station_id: stationId, ...track })
+        });
+      } catch (e) { /* Fallback to local UI state */ }
+
+      document.getElementById('trackTitle').value = '';
+      document.getElementById('audioUrl').value = '';
+      updateUI();
+      showToast('trackToast', `"${title}" added to ${station.name}!`);
+    }
+
+    function playStation(stationId) {
+      const station = stations.find(s => s.id == stationId);
+      if (!station) return;
+      const latestTrack = station.tracks[station.tracks.length - 1];
+      document.getElementById('nowPlayingTitle').textContent = latestTrack ? latestTrack.title : station.name;
+      document.getElementById('nowPlayingSub').textContent = `${station.name} • ${station.tracks.length} tracks`;
+      if (latestTrack && latestTrack.url) {
+        const player = document.getElementById('audioPlayer');
+        player.src = latestTrack.url;
+        player.play();
+      }
+    }
+
+    function updateUI() {
+      const select = document.getElementById('stationSelect');
+      const list = document.getElementById('stationsList');
+
+      select.innerHTML = '<option value="">-- Select Target Station --</option>' +
+        stations.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+
+      if (stations.length === 0) return;
+
+      list.innerHTML = stations.map(s => {
+        const latest = s.tracks[s.tracks.length - 1];
+        let badges = '';
+        if (latest) {
+          if (latest.disclosure.audio) badges += '<span class="ai-badge">AI Audio</span> ';
+          if (latest.disclosure.lyrics) badges += '<span class="ai-badge">AI Lyrics</span> ';
+          if (latest.disclosure.artwork) badges += '<span class="ai-badge">AI Art</span>';
+        }
+        return `
+          <div class="station-item">
+            <div>
+              <strong>${s.name}</strong>
+              <div style="font-size: 0.8rem; color: var(--muted);">${s.genre} • ${s.tracks.length} track(s)</div>
+              <div style="margin-top: 4px;">${badges}</div>
+            </div>
+            <button style="width: auto; padding: 8px 14px; margin: 0;" onclick="playStation(${s.id})">▶ Tune In</button>
+          </div>
+        `;
+      }).join('');
+    }
+  </script>
+</body>
+</html>
