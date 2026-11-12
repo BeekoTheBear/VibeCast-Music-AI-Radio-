@@ -28,6 +28,7 @@
     button:active { background: var(--accent-hover); transform: scale(0.99); }
     button.secondary { background: #262b38; color: var(--text); }
     button.store-btn { background: #10b981; color: white; margin-top: 6px; }
+    button.danger-btn { background: #ef4444; color: white; padding: 4px 8px; font-size: 0.75rem; width: auto; margin: 0; }
 
     /* Tabs */
     .tabs { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
@@ -53,10 +54,18 @@
     .media-stage video, .media-stage img { width: 100%; max-height: 200px; border-radius: 8px; object-fit: cover; display: none; margin: 0 auto 10px auto; }
     .info-box { background: #0d0f14; border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-size: 0.85rem; color: var(--muted); text-align: left; max-height: 150px; overflow-y: auto; white-space: pre-wrap; margin-top: 8px; }
 
+    /* In-App Commerce Modal Overlay */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.8); z-index: 200; display: none;
+      justify-content: center; align-items: center; padding: 16px;
+    }
+    .modal-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; width: 100%; max-width: 400px; text-align: center; }
+
     .checkbox-group { display: flex; flex-direction: column; gap: 8px; margin: 10px 0 14px 0; font-size: 0.88rem; color: var(--muted); }
     .checkbox-group label { display: flex; align-items: center; gap: 10px; cursor: pointer; }
     .checkbox-group input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); }
-    .station-item { padding: 12px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .station-item { padding: 12px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 10px; }
     .ai-badge { background: var(--badge); color: #b388ff; font-size: 0.7rem; padding: 2px 7px; border-radius: 6px; border: 1px solid #3f2e7a; font-weight: 600; display: inline-block; margin-right: 4px; margin-top: 4px; }
     .player-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #12151e; border-top: 1px solid var(--border); padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; z-index: 100; }
     .toast { font-size: 0.85rem; color: #10b981; margin-top: 4px; display: none; }
@@ -69,7 +78,7 @@
     <span style="font-size: 0.8rem; color: var(--muted);"><span class="status-dot"></span>Studio Live</span>
   </header>
 
-  <!-- NOW PLAYING STAGE (Video, Lyrics, Bio, Tickets, Merch) -->
+  <!-- NOW PLAYING STAGE -->
   <div class="card" id="nowPlayingCard" style="display: none;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
       <span style="font-size: 0.78rem; color: #b388ff; font-weight: 600;">ON AIR DECK</span>
@@ -84,7 +93,6 @@
       <div id="stageBadges"></div>
     </div>
 
-    <!-- Interactive Track Information & Commerce Tabs -->
     <div class="tabs">
       <button class="tab-btn active" id="btnLyrics" onclick="switchInfoTab('lyrics')">📜 Lyrics</button>
       <button class="tab-btn" id="btnBio" onclick="switchInfoTab('bio')">📖 Bio</button>
@@ -97,64 +105,70 @@
   <!-- 1. Create Station -->
   <div class="card">
     <h2>1. Launch Radio Station</h2>
-    <input type="text" id="stationName" placeholder="Station Name (e.g., Ultimate Festival Mix)" />
-    <input type="text" id="stationGenre" placeholder="Vibe / Genre (e.g., Live Tour & Merch Stream)" />
+    <input type="text" id="stationName" placeholder="Station Name (e.g., Festival Vibe)" />
+    <input type="text" id="stationGenre" placeholder="Vibe / Genre" />
     <button onclick="createStation()">Create Station</button>
     <div id="stationToast" class="toast">Station created!</div>
   </div>
 
-  <!-- 2. Seed Station -->
+  <!-- 2. Seed Station & Manage Artists -->
   <div class="card">
-    <h2>2. Add Music & Artist Events</h2>
+    <h2>2. Add & Edit Station Seeds</h2>
     <select id="stationSelect">
       <option value="">-- Select Target Station --</option>
     </select>
 
     <div class="tabs">
       <button class="tab-btn active" id="tabGlobalBtn" onclick="switchSourceTab('global')">🌍 Global Artist Seed</button>
-      <button class="tab-btn" id="tabCustomBtn" onclick="switchSourceTab('custom')">🎙️ My Created Files & Merch</button>
+      <button class="tab-btn" id="tabCustomBtn" onclick="switchSourceTab('custom')">🎙️ My Custom Files</button>
     </div>
 
-    <!-- TAB A: Global Artist Search -->
     <div id="panelGlobal" class="tab-panel active">
       <div class="autocomplete-container">
         <input type="text" id="artistName" placeholder="Search ANY artist worldwide..." oninput="searchGlobalArtists(this.value)" autocomplete="off" />
         <div id="artistSuggestions" class="suggestions-list"></div>
       </div>
-      <button onclick="addGlobalArtistSeed()">Seed Artist & Tour Dates into Rotation</button>
+      <button onclick="addGlobalArtistSeed()">Seed Artist into Rotation</button>
     </div>
 
-    <!-- TAB B: Custom Files, Tickets & Merch -->
     <div id="panelCustom" class="tab-panel">
       <input type="text" id="customTitle" placeholder="Song / Video Title" />
       <input type="text" id="customArtist" placeholder="Artist / Creator Name" />
-      
       <input type="file" id="customLocalFile" accept="audio/*,video/*" style="padding: 8px;" />
-      <input type="url" id="customMediaUrl" placeholder="Or paste direct media URL (.mp3 / .mp4)" />
-      
+      <input type="url" id="customMediaUrl" placeholder="Or paste media URL (.mp3 / .mp4)" />
       <textarea id="customLyrics" placeholder="Song lyrics..."></textarea>
       <textarea id="customBio" placeholder="Artist history / bio..."></textarea>
-      <input type="text" id="customTickets" placeholder="Upcoming Event / Ticket Link (e.g., https://bandsintown.com/...)" />
-      <input type="text" id="customMerch" placeholder="Merchandise Store Link (e.g., https://yourstore.com/shirt)" />
+      <input type="text" id="customTickets" placeholder="Event Info / Ticket Title (e.g., Live in NYC - $35)" />
+      <input type="text" id="customMerch" placeholder="Merch Item Title (e.g., Official Tour Hoodie - $55)" />
 
       <div class="checkbox-group">
         <strong style="color: var(--text); font-size: 0.82rem;">Mandatory AI Disclosure:</strong>
-        <label><input type="checkbox" id="aiAudio" checked /> AI-Generated Audio / Vocals</label>
-        <label><input type="checkbox" id="aiLyrics" /> AI-Generated Lyrics</label>
-        <label><input type="checkbox" id="aiArtwork" /> AI-Generated Video / Cover Art</label>
+        <label><input type="checkbox" id="aiAudio" checked /> AI Audio / Vocals</label>
+        <label><input type="checkbox" id="aiLyrics" /> AI Lyrics</label>
+        <label><input type="checkbox" id="aiArtwork" /> AI Video / Art</label>
       </div>
 
-      <button onclick="addCustomCreation()">Add Track, Tickets & Merch</button>
+      <button onclick="addCustomCreation()">Add Track & In-App Store Items</button>
     </div>
 
-    <div id="trackToast" class="toast">Added successfully!</div>
+    <div id="trackToast" class="toast">Updated successfully!</div>
   </div>
 
-  <!-- 3. Live Stations Feed -->
+  <!-- 3. Live Stations & Artist Seed Editor -->
   <div class="card">
-    <h2>3. Live On-Air Stations</h2>
+    <h2>3. Live Stations & Seed Management</h2>
     <div id="stationsList">
-      <p style="color: var(--muted); font-size: 0.88rem;">No active stations yet. Create one above!</p>
+      <p style="color: var(--muted); font-size: 0.88rem;">No active stations yet.</p>
+    </div>
+  </div>
+
+  <!-- IN-APP COMMERCE MODAL (Tickets & Merch Checkout) -->
+  <div id="commerceModal" class="modal-overlay">
+    <div class="modal-card">
+      <h3 id="modalTitle" style="margin-top: 0; color: #b388ff;">In-App Checkout</h3>
+      <p id="modalDesc" style="font-size: 0.9rem; color: var(--muted); margin-bottom: 20px;"></p>
+      <button onclick="completeInAppPurchase()">Confirm Secure In-App Order</button>
+      <button class="secondary" onclick="closeModal()">Cancel</button>
     </div>
   </div>
 
@@ -199,36 +213,37 @@
       } else if (currentInfoTab === 'bio') {
         box.textContent = currentTrack.bio || "Artist biography unavailable.";
       } else if (currentInfoTab === 'tickets') {
-        if (currentTrack.ticketsUrl) {
-          box.innerHTML = `🎟️ <strong>Upcoming Tour & Events:</strong><br><br>Catch ${currentTrack.artist} live on tour!<br><br><a href="${currentTrack.ticketsUrl}" target="_blank"><button class="store-btn">🎟️ Buy Tickets Now</button></a>`;
-        } else {
-          box.textContent = `No upcoming event links listed for ${currentTrack.artist}.`;
-        }
+        box.innerHTML = `🎟️ <strong>Upcoming Event:</strong><br><br>${currentTrack.ticketsInfo || 'General Tour Event'}<br><br><button class="store-btn" onclick="openModal('ticket', '${currentTrack.ticketsInfo}')">🎟️ Buy Ticket In-App</button>`;
       } else if (currentInfoTab === 'merch') {
-        if (currentTrack.merchUrl) {
-          box.innerHTML = `👕 <strong>Official Merchandise:</strong><br><br>Support ${currentTrack.artist} with official apparel and gear!<br><br><a href="${currentTrack.merchUrl}" target="_blank"><button class="store-btn">🛍️ Shop Artist Merch</button></a>`;
-        } else {
-          box.textContent = `No merchandise store linked for ${currentTrack.artist} yet.`;
-        }
+        box.innerHTML = `👕 <strong>Official Merchandise:</strong><br><br>${currentTrack.merchInfo || 'Exclusive Artist Merch'}<br><br><button class="store-btn" onclick="openModal('merch', '${currentTrack.merchInfo}')">🛍️ Order Merch In-App</button>`;
       }
+    }
+
+    function openModal(type, info) {
+      document.getElementById('modalTitle').textContent = type === 'ticket' ? '🎟️ Event Ticket Checkout' : '👕 Merchandise Order';
+      document.getElementById('modalDesc').textContent = `Processing order for: "${info}". Secure checkout powered by VibeCast Studio.`;
+      document.getElementById('commerceModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('commerceModal').style.display = 'none';
+    }
+
+    function completeInAppPurchase() {
+      alert('Order confirmed successfully within VibeCast!');
+      closeModal();
     }
 
     function searchGlobalArtists(query) {
       const box = document.getElementById('artistSuggestions');
-      if (!query || query.trim().length < 2) {
-        box.style.display = 'none';
-        return;
-      }
+      if (!query || query.trim().length < 2) { box.style.display = 'none'; return; }
 
       clearTimeout(searchTimeout);
       searchTimeout = setTimeout(async () => {
         try {
           const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=8`);
           const data = await res.json();
-          if (!data.results || data.results.length === 0) {
-            box.style.display = 'none';
-            return;
-          }
+          if (!data.results || data.results.length === 0) { box.style.display = 'none'; return; }
           searchCache = data.results;
           box.innerHTML = data.results.map((item, idx) => `
             <div class="suggestion-item" onclick="selectArtist(${idx})">
@@ -269,7 +284,7 @@
       const genre = document.getElementById('stationGenre').value.trim();
       if (!name) return alert('Enter a station name.');
 
-      const station = { id: Date.now(), name, genre: genre || 'Live Tour & Merch Mix', artists: [], tracks: [] };
+      const station = { id: Date.now(), name, genre: genre || 'VibeCast Station', artists: [], tracks: [] };
       stations.push(station);
 
       document.getElementById('stationName').value = '';
@@ -284,8 +299,9 @@
       if (!stationId || !artist) return alert('Select a station and enter an artist.');
 
       const station = stations.find(s => s.id == stationId);
+      if (station.artists.includes(artist)) return alert('Artist already seeded in this station.');
 
-      let artistBio = `${artist} — Featured artist on VibeCast.`;
+      let artistBio = `${artist} — Seeded artist on VibeCast.`;
       try {
         const wikiRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(artist)}`);
         if (wikiRes.ok) {
@@ -300,28 +316,29 @@
         const data = await res.json();
         if (data.results) {
           fetchedTracks = data.results.filter(r => r.previewUrl).map(t => ({
+            id: Date.now() + Math.random(),
+            artist: artist,
             title: t.trackName,
-            artist: t.artistName,
             mediaUrl: t.previewUrl,
             isVideo: false,
             artwork: t.artworkUrl100 ? t.artworkUrl100.replace('100x100', '400x400') : '',
-            lyrics: `🎵 "${t.trackName}" by ${t.artistName}\nAlbum: ${t.collectionName || 'Single'}`,
+            lyrics: `🎵 "${t.trackName}" by ${artist}\nAlbum: ${t.collectionName || 'Single'}`,
             bio: artistBio,
-            ticketsUrl: `https://www.bandsintown.com/search?query=${encodeURIComponent(artist)}`,
-            merchUrl: `https://www.google.com/search?q=${encodeURIComponent(artist + ' official merchandise store')}`,
+            ticketsInfo: `${artist} Live Tour 2026 - General Admission ($45.00)`,
+            merchInfo: `${artist} Signature Tour T-Shirt ($35.00)`,
             disclosure: { audio: false, lyrics: false, artwork: false }
           }));
         }
       } catch (e) { console.error(e); }
 
-      if (fetchedTracks.length === 0) return alert('No playable tracks found.');
+      if (fetchedTracks.length === 0) return alert('No tracks found.');
 
       station.artists.push(artist);
       station.tracks.push(...fetchedTracks);
 
       document.getElementById('artistName').value = '';
       updateUI();
-      showToast('trackToast', `Added ${fetchedTracks.length} tracks + tour links for ${artist}!`);
+      showToast('trackToast', `Seeded ${artist} successfully!`);
     }
 
     function addCustomCreation() {
@@ -332,8 +349,8 @@
       const urlInput = document.getElementById('customMediaUrl').value.trim();
       const lyrics = document.getElementById('customLyrics').value.trim();
       const bio = document.getElementById('customBio').value.trim();
-      const ticketsUrl = document.getElementById('customTickets').value.trim();
-      const merchUrl = document.getElementById('customMerch').value.trim();
+      const ticketsInfo = document.getElementById('customTickets').value.trim() || `${artist} Event Pass - $25.00`;
+      const merchInfo = document.getElementById('customMerch').value.trim() || `${artist} Studio Merch Item - $30.00`;
 
       if (!stationId || !title) return alert('Select a station and enter a title.');
 
@@ -346,10 +363,11 @@
         isVideo = file.type.startsWith('video/');
       }
 
-      if (!mediaUrl) return alert('Provide an audio/video file or media URL.');
+      if (!mediaUrl) return alert('Provide a media file or URL.');
 
       const station = stations.find(s => s.id == stationId);
       const track = {
+        id: Date.now() + Math.random(),
         title,
         artist,
         mediaUrl,
@@ -357,8 +375,8 @@
         artwork: '',
         lyrics: lyrics || 'Original custom track.',
         bio: bio || `Created by ${artist}.`,
-        ticketsUrl,
-        merchUrl,
+        ticketsInfo,
+        merchInfo,
         disclosure: {
           audio: document.getElementById('aiAudio').checked,
           lyrics: document.getElementById('aiLyrics').checked,
@@ -378,7 +396,21 @@
       document.getElementById('customMerch').value = '';
 
       updateUI();
-      showToast('trackToast', `"${title}" added with tickets & merch!`);
+      showToast('trackToast', `"${title}" added successfully!`);
+    }
+
+    // Artist Seed Removal / Editing
+    function removeArtist(stationId, artistName) {
+      const station = stations.find(s => s.id == stationId);
+      if (!station) return;
+
+      // Remove artist from list
+      station.artists = station.artists.filter(a => a !== artistName);
+      // Remove their associated tracks from the rotation pool
+      station.tracks = station.tracks.filter(t => t.artist !== artistName);
+
+      updateUI();
+      showToast('stationToast', `Removed ${artistName} and their tracks.`);
     }
 
     function playStation(stationId) {
@@ -388,7 +420,7 @@
 
     function skipNextTrack() {
       const station = stations.find(s => s.id == activeStationId);
-      if (!station || station.tracks.length === 0) return alert('Add tracks to this station first!');
+      if (!station || station.tracks.length === 0) return alert('Add artists or tracks to this station first!');
 
       const track = station.tracks[Math.floor(Math.random() * station.tracks.length)];
       currentTrack = track;
@@ -441,16 +473,26 @@
       select.innerHTML = '<option value="">-- Select Target Station --</option>' +
         stations.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
 
-      if (stations.length === 0) return;
+      if (stations.length === 0) {
+        list.innerHTML = '<p style="color: var(--muted); font-size: 0.88rem;">No active stations yet.</p>';
+        return;
+      }
 
       list.innerHTML = stations.map(s => `
         <div class="station-item">
-          <div>
-            <strong>${s.name}</strong>
-            <div style="font-size: 0.8rem; color: var(--muted);">${s.genre} • ${s.tracks.length} tracks</div>
-            <div style="font-size: 0.75rem; color: #b388ff; margin-top: 3px;">Artists: ${s.artists.join(', ') || 'None'}</div>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+            <div>
+              <strong>${s.name}</strong>
+              <div style="font-size: 0.8rem; color: var(--muted);">${s.genre} • ${s.tracks.length} track pool</div>
+            </div>
+            <button style="width: auto; padding: 6px 12px; margin: 0; font-size: 0.8rem;" onclick="playStation(${s.id})">▶ Tune In</button>
           </div>
-          <button style="width: auto; padding: 8px 14px; margin: 0;" onclick="playStation(${s.id})">▶ Tune In</button>
+          <div style="font-size: 0.8rem; color: #b388ff; border-top: 1px solid var(--border); padding-top: 8px;">
+            Seeded Artists (Tap to Remove):
+            <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px;">
+              ${s.artists.length > 0 ? s.artists.map(a => `<span style="background: var(--bg); border: 1px solid var(--border); padding: 4px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px;">${a} <button class="danger-btn" onclick="removeArtist(${s.id}, '${a}')">✕</button></span>`).join('') : '<span style="color: var(--muted);">None</span>'}
+            </div>
+          </div>
         </div>
       `).join('');
     }
