@@ -20,17 +20,32 @@
     header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
     h1 { font-size: 1.25rem; margin: 0; letter-spacing: -0.5px; }
     .status-dot { height: 10px; width: 10px; background: #10b981; border-radius: 50%; display: inline-block; margin-right: 6px; }
-    .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 16px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 16px; position: relative; }
     h2 { font-size: 1rem; margin: 0 0 12px 0; color: var(--text); }
     input, select, button { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: #0d0f14; color: var(--text); font-size: 0.95rem; margin-bottom: 10px; }
     button { background: var(--accent); border: none; font-weight: 600; cursor: pointer; transition: 0.2s; }
     button:active { background: var(--accent-hover); transform: scale(0.99); }
+    
+    /* Dynamic Autofill Dropdown */
+    .autocomplete-container { position: relative; width: 100%; }
+    .suggestions-list {
+      position: absolute; top: 100%; left: 0; right: 0;
+      background: #12151e; border: 1px solid var(--border);
+      border-radius: 0 0 10px 10px; max-height: 200px; overflow-y: auto;
+      z-index: 50; display: none; margin-top: -10px; margin-bottom: 10px;
+    }
+    .suggestion-item { padding: 10px 12px; font-size: 0.9rem; cursor: pointer; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+    .suggestion-item:hover { background: var(--accent); color: white; }
+    .suggestion-item img { width: 30px; height: 30px; border-radius: 4px; object-fit: cover; }
+
+    .slider-container { margin: 10px 0; font-size: 0.85rem; color: var(--muted); }
+    .slider-container input { padding: 0; }
     .checkbox-group { display: flex; flex-direction: column; gap: 8px; margin: 10px 0 14px 0; font-size: 0.88rem; color: var(--muted); }
     .checkbox-group label { display: flex; align-items: center; gap: 10px; cursor: pointer; }
     .checkbox-group input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); }
     .station-item { padding: 12px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
     .ai-badge { background: var(--badge); color: #b388ff; font-size: 0.72rem; padding: 3px 8px; border-radius: 6px; border: 1px solid #3f2e7a; font-weight: 600; }
-    .player-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #12151e; border-top: 1px solid var(--border); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; }
+    .player-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #12151e; border-top: 1px solid var(--border); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; z-index: 100; }
     .toast { font-size: 0.85rem; color: #10b981; margin-top: 4px; display: none; }
   </style>
 </head>
@@ -41,55 +56,118 @@
     <span style="font-size: 0.8rem; color: var(--muted);"><span class="status-dot"></span>Live</span>
   </header>
 
-  <!-- Create Station Card -->
+  <!-- 1. Create Station -->
   <div class="card">
-    <h2>1. Launch a Radio Station</h2>
-    <input type="text" id="stationName" placeholder="Station Name (e.g., Midnight Synthwave)" />
-    <input type="text" id="stationGenre" placeholder="Genre / Vibe (e.g., Lo-Fi AI Beats)" />
+    <h2>1. Launch Radio Station</h2>
+    <input type="text" id="stationName" placeholder="Station Name (e.g., Global Indie Vibe)" />
+    <input type="text" id="stationGenre" placeholder="Genre / Vibe (e.g., Worldwide Rotation)" />
     <button onclick="createStation()">Create Station</button>
-    <div id="stationToast" class="toast">Station created!</div>
+    <div id="stationToast" class="toast">Station created successfully!</div>
   </div>
 
-  <!-- Upload Track with AI Compliance -->
+  <!-- 2. Dynamic Artist Search & Rotation Pool -->
   <div class="card">
-    <h2>2. Queue Track & AI Disclosure</h2>
+    <h2>2. Dynamic Artist Lookup & Rotation</h2>
     <select id="stationSelect">
       <option value="">-- Select Target Station --</option>
     </select>
-    <input type="text" id="trackTitle" placeholder="Track Title" />
-    <input type="text" id="artistName" placeholder="Creator / AI Prompt Artist" />
-    <input type="url" id="audioUrl" placeholder="Audio Stream URL (.mp3 / .wav)" />
+    
+    <!-- Live Global Search Input -->
+    <div class="autocomplete-container">
+      <input type="text" id="artistName" placeholder="Type ANY artist worldwide (e.g., Alec Benjamin)" oninput="searchGlobalArtists(this.value)" autocomplete="off" />
+      <div id="artistSuggestions" class="suggestions-list"></div>
+    </div>
+
+    <div class="slider-container">
+      <label for="trackCount">Top Hits to Mix in: <span id="trackCountVal">5</span></label>
+      <input type="range" id="trackCount" min="3" max="10" value="5" oninput="document.getElementById('trackCountVal').textContent=this.value" />
+    </div>
 
     <div class="checkbox-group">
       <strong style="color: var(--text); font-size: 0.82rem;">Mandatory AI Disclosure:</strong>
-      <label><input type="checkbox" id="aiAudio" checked /> AI-Generated Audio</label>
+      <label><input type="checkbox" id="aiAudio" /> AI-Generated Audio</label>
       <label><input type="checkbox" id="aiLyrics" /> AI-Generated Lyrics</label>
       <label><input type="checkbox" id="aiArtwork" /> AI-Generated Cover Art</label>
     </div>
 
-    <button onclick="uploadTrack()">Add Track to Station</button>
-    <div id="trackToast" class="toast">Track queued with AI disclosures!</div>
+    <button onclick="addArtistSeed()">Seed Artist & Shuffle Rotation</button>
+    <div id="trackToast" class="toast">Artist added to station pool!</div>
   </div>
 
-  <!-- Live Stations Feed -->
+  <!-- 3. Live Stations Feed -->
   <div class="card">
     <h2>3. Live On-Air Stations</h2>
     <div id="stationsList">
-      <p style="color: var(--muted); font-size: 0.88rem;">No stations live yet. Create one above!</p>
+      <p style="color: var(--muted); font-size: 0.88rem;">No active stations yet. Create one above!</p>
     </div>
   </div>
 
-  <!-- Persistent Mini Audio Player -->
+  <!-- Persistent Player Bar -->
   <div class="player-bar">
     <div>
       <div id="nowPlayingTitle" style="font-weight: 600; font-size: 0.9rem;">Select a station to tune in</div>
-      <div id="nowPlayingSub" style="font-size: 0.75rem; color: var(--muted);">VibeCast Social Radio</div>
+      <div id="nowPlayingSub" style="font-size: 0.75rem; color: var(--muted);">VibeCast Shuffle Radio</div>
     </div>
     <audio id="audioPlayer" controls style="height: 36px; max-width: 170px;"></audio>
   </div>
 
   <script>
     const stations = [];
+    let searchTimeout = null;
+    let selectedArtistTracks = [];
+
+    // Live global artist lookup using public music catalog API
+    async function searchGlobalArtists(query) {
+      const box = document.getElementById('artistSuggestions');
+      if (!query || query.trim().length < 2) {
+        box.style.display = 'none';
+        return;
+      }
+
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(async () => {
+        try {
+          const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=10`);
+          const data = await res.json();
+          
+          if (!data.results || data.results.length === 0) {
+            box.style.display = 'none';
+            return;
+          }
+
+          // Cache fetched tracks for seeding
+          selectedArtistTracks = data.results;
+
+          // Render live dropdown suggestions
+          box.innerHTML = data.results.map((track, idx) => `
+            <div class="suggestion-item" onclick="selectArtistFromSearch(${idx})">
+              <img src="${track.artworkUrl100 || ''}" alt="art" />
+              <div>
+                <div style="font-weight: 600;">${track.artistName}</div>
+                <div style="font-size: 0.75rem; color: var(--muted);">${track.trackName}</div>
+              </div>
+            </div>
+          `).join('');
+          box.style.display = 'block';
+        } catch (e) {
+          console.error("Search error:", e);
+        }
+      }, 300); // Debounce typing
+    }
+
+    function selectArtistFromSearch(index) {
+      const track = selectedArtistTracks[index];
+      if (!track) return;
+      document.getElementById('artistName').value = track.artistName;
+      document.getElementById('artistSuggestions').style.display = 'none';
+    }
+
+    // Hide dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.autocomplete-container')) {
+        document.getElementById('artistSuggestions').style.display = 'none';
+      }
+    });
 
     function showToast(id, msg) {
       const el = document.getElementById(id);
@@ -98,22 +176,13 @@
       setTimeout(() => el.style.display = 'none', 3000);
     }
 
-    async function createStation() {
+    function createStation() {
       const name = document.getElementById('stationName').value.trim();
       const genre = document.getElementById('stationGenre').value.trim();
-      if (!name) return alert('Enter a station name');
+      if (!name) return alert('Please enter a station name.');
 
-      const station = { id: Date.now(), name, genre: genre || 'AI Radio', tracks: [] };
+      const station = { id: Date.now(), name, genre: genre || 'Global Radio', artists: [], rotationPool: [] };
       stations.push(station);
-
-      // Sync with Flask backend if /stations route exists
-      try {
-        await fetch('/stations', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(station)
-        });
-      } catch (e) { /* Fallback to local UI state */ }
 
       document.getElementById('stationName').value = '';
       document.getElementById('stationGenre').value = '';
@@ -121,49 +190,74 @@
       showToast('stationToast', `Station "${name}" is live!`);
     }
 
-    async function uploadTrack() {
+    async function addArtistSeed() {
       const stationId = document.getElementById('stationSelect').value;
-      const title = document.getElementById('trackTitle').value.trim();
       const artist = document.getElementById('artistName').value.trim();
-      const url = document.getElementById('audioUrl').value.trim();
+      const count = parseInt(document.getElementById('trackCount').value);
 
-      if (!stationId || !title) return alert('Select a station and enter a track title.');
+      if (!stationId || !artist) return alert('Select a station and enter an artist name.');
 
-      const disclosure = {
-        audio: document.getElementById('aiAudio').checked,
-        lyrics: document.getElementById('aiLyrics').checked,
-        artwork: document.getElementById('aiArtwork').checked
-      };
-
-      const track = { title, artist: artist || 'VibeCast Creator', url, disclosure };
-      const station = stations.find(s => s.id == stationId);
-      if (station) station.tracks.push(track);
-
-      try {
-        await fetch('/tracks', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ station_id: stationId, ...track })
-        });
-      } catch (e) { /* Fallback to local UI state */ }
-
-      document.getElementById('trackTitle').value = '';
-      document.getElementById('audioUrl').value = '';
-      updateUI();
-      showToast('trackToast', `"${title}" added to ${station.name}!`);
-    }
-
-    function playStation(stationId) {
       const station = stations.find(s => s.id == stationId);
       if (!station) return;
-      const latestTrack = station.tracks[station.tracks.length - 1];
-      document.getElementById('nowPlayingTitle').textContent = latestTrack ? latestTrack.title : station.name;
-      document.getElementById('nowPlayingSub').textContent = `${station.name} • ${station.tracks.length} tracks`;
-      if (latestTrack && latestTrack.url) {
-        const player = document.getElementById('audioPlayer');
-        player.src = latestTrack.url;
-        player.play();
+
+      // Dynamically fetch real tracks from global database for this artist
+      let artistTracks = [];
+      try {
+        const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(artist)}&entity=song&limit=${count}`);
+        const data = await res.json();
+        if (data.results && data.results.length > 0) {
+          artistTracks = data.results.map(t => ({
+            title: `${t.trackName} - ${t.artistName}`,
+            artist: t.artistName,
+            url: t.previewUrl, // Real 30-sec streaming audio preview
+            disclosure: {
+              audio: document.getElementById('aiAudio').checked,
+              lyrics: document.getElementById('aiLyrics').checked,
+              artwork: document.getElementById('aiArtwork').checked
+            }
+          }));
+        }
+      } catch (e) {
+        console.error("Fetch tracks error:", e);
       }
+
+      // Fallback if search returns nothing
+      if (artistTracks.length === 0) {
+        artistTracks.push({
+          title: `${artist} - Custom Track (Shuffle Mix)`,
+          artist: artist,
+          url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+          disclosure: {
+            audio: document.getElementById('aiAudio').checked,
+            lyrics: document.getElementById('aiLyrics').checked,
+            artwork: document.getElementById('aiArtwork').checked
+          }
+        });
+      }
+
+      station.artists.push({ name: artist, trackCount: artistTracks.length });
+      station.rotationPool.push(...artistTracks);
+
+      document.getElementById('artistName').value = '';
+      updateUI();
+      showToast('trackToast', `Added ${artistTracks.length} tracks for ${artist} into rotation!`);
+    }
+
+    function playRandomStationTrack(stationId) {
+      const station = stations.find(s => s.id == stationId);
+      if (!station || station.rotationPool.length === 0) {
+        return alert('This station has no artists seeded yet!');
+      }
+
+      const randomIndex = Math.floor(Math.random() * station.rotationPool.length);
+      const track = station.rotationPool[randomIndex];
+
+      document.getElementById('nowPlayingTitle').textContent = track.title;
+      document.getElementById('nowPlayingSub').textContent = `${station.name} • ${station.artists.length} Artist(s) in Rotation`;
+      
+      const player = document.getElementById('audioPlayer');
+      player.src = track.url;
+      player.play();
     }
 
     function updateUI() {
@@ -173,27 +267,23 @@
       select.innerHTML = '<option value="">-- Select Target Station --</option>' +
         stations.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
 
-      if (stations.length === 0) return;
+      if (stations.length === 0) {
+        list.innerHTML = '<p style="color: var(--muted); font-size: 0.88rem;">No active stations yet. Create one above!</p>';
+        return;
+      }
 
-      list.innerHTML = stations.map(s => {
-        const latest = s.tracks[s.tracks.length - 1];
-        let badges = '';
-        if (latest) {
-          if (latest.disclosure.audio) badges += '<span class="ai-badge">AI Audio</span> ';
-          if (latest.disclosure.lyrics) badges += '<span class="ai-badge">AI Lyrics</span> ';
-          if (latest.disclosure.artwork) badges += '<span class="ai-badge">AI Art</span>';
-        }
-        return `
-          <div class="station-item">
-            <div>
-              <strong>${s.name}</strong>
-              <div style="font-size: 0.8rem; color: var(--muted);">${s.genre} • ${s.tracks.length} track(s)</div>
-              <div style="margin-top: 4px;">${badges}</div>
+      list.innerHTML = stations.map(s => `
+        <div class="station-item">
+          <div>
+            <strong>${s.name}</strong>
+            <div style="font-size: 0.8rem; color: var(--muted);">${s.genre} • ${s.artists.length} Artist(s) • ${s.rotationPool.length} Track Pool</div>
+            <div style="margin-top: 4px; font-size: 0.75rem; color: #b388ff;">
+              Artists: ${s.artists.map(a => `${a.name} (${a.trackCount})`).join(', ') || 'None'}
             </div>
-            <button style="width: auto; padding: 8px 14px; margin: 0;" onclick="playStation(${s.id})">▶ Tune In</button>
           </div>
-        `;
-      }).join('');
+          <button style="width: auto; padding: 8px 14px; margin: 0;" onclick="playRandomStationTrack(${s.id})">▶ Tune In</button>
+        </div>
+      `).join('');
     }
   </script>
 </body>
