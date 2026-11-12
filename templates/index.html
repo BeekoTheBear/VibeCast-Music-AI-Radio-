@@ -33,7 +33,7 @@
       padding: 20px; overflow-y: auto;
     }
     .auth-box { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; width: 100%; max-width: 400px; }
-    .google-btn { background: #ffffff; color: #111827; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 600; margin-bottom: 14px; }
+    .google-btn { background: #ffffff; color: #111827; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 600; margin-bottom: 14px; width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); cursor: pointer; }
     .divider { text-align: center; color: var(--muted); font-size: 0.78rem; margin: 12px 0; }
 
     .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 16px; position: relative; }
@@ -64,7 +64,7 @@
     .suggestion-item:hover { background: var(--accent); color: white; }
     .suggestion-item img { width: 32px; height: 32px; border-radius: 4px; object-fit: cover; }
 
-    /* Media Stage (Full Video & Audio Player) */
+    /* Media Stage (In-App Video & Audio Player) */
     .media-stage { background: #0a0c10; border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 12px; text-align: center; }
     .stage-frame-wrap { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 8px; background: #000; margin-bottom: 10px; display: none; }
     .stage-frame-wrap iframe, #ytPlayerContainer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
@@ -73,6 +73,10 @@
 
     .merch-preview-card { background: #12151e; border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; }
     .merch-preview-card img { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; background: #000; }
+
+    .yt-result-card { display: flex; align-items: center; gap: 10px; padding: 8px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; cursor: pointer; background: #12151e; }
+    .yt-result-card:hover { border-color: var(--accent); }
+    .yt-result-card img { width: 72px; height: 42px; object-fit: cover; border-radius: 4px; flex-shrink: 0; }
 
     .modal-overlay {
       position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85);
@@ -132,7 +136,7 @@
     </div>
   </header>
 
-  <!-- NOW PLAYING STAGE (Full Video / Audio Stream, Rich Wiki Bio, Lyrics, Interactive Merch & Tickets) -->
+  <!-- NOW PLAYING STAGE -->
   <div class="card" id="nowPlayingCard" style="display: none;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
       <span style="font-size: 0.78rem; color: #b388ff; font-weight: 600;" id="stageDeckHeader">ON AIR DECK • FULL STREAM</span>
@@ -171,7 +175,7 @@
     <div id="stationToast" class="toast">Channel saved!</div>
   </div>
 
-  <!-- 2. SEED CHANNEL (Global Music Search OR YouTube / Custom Media) -->
+  <!-- 2. SEED CHANNEL -->
   <div class="card">
     <h2>2. Add & Edit Channel Seeds</h2>
     <select id="stationSelect">
@@ -556,7 +560,7 @@
       closeModal();
     }
 
-    // STRICT MUSIC SEARCH WITH RICH WIKIPEDIA BIOS & FULL YOUTUBE STREAM RESOLUTION
+    // STRICT MUSIC SEARCH WITH ROBUST WIKIPEDIA BIOS & FULL YOUTUBE STREAM RESOLUTION
     function searchGlobalArtists(query) {
       const box = document.getElementById('artistSuggestions');
       if (!query || query.trim().length < 2) { box.style.display = 'none'; return; }
@@ -625,17 +629,27 @@
       const station = stations.find(s => s.id == stationId);
       if (station.artists.includes(artist)) return alert('Artist already seeded.');
 
-      // Fetch Rich Wikipedia Artist Bio (Avoiding generic fallbacks)
+      // Robust Wikipedia Artist Bio with OpenSearch Fallback
       let artistBio = `${artist} is an acclaimed recording artist and global performer recognized for chart-topping studio albums, immersive live performances, and distinct sonic evolution across modern music streaming channels.`;
       try {
-        const wikiRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(artist)}`);
-        if (wikiRes.ok) {
+        let wikiRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(artist)}`);
+        if (!wikiRes.ok) {
+          const searchRes = await fetch(`https://en.wikipedia.org/w/api.php?action=opensearch&search=${encodeURIComponent(artist)}&limit=1&format=json&origin=*`);
+          const searchData = await searchRes.json();
+          if (searchData && searchData[1] && searchData[1][0]) {
+            const properTitle = searchData[1][0];
+            wikiRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(properTitle)}`);
+          }
+        }
+        if (wikiRes && wikiRes.ok) {
           const wikiData = await wikiRes.json();
           if (wikiData.extract && !wikiData.extract.toLowerCase().includes('may refer to')) {
             artistBio = wikiData.extract;
           }
         }
-      } catch (e) {}
+      } catch (e) {
+        console.error("Wiki fetch error:", e);
+      }
 
       let fetchedTracks = [];
       try {
@@ -647,7 +661,7 @@
             artist: artist,
             title: t.trackName,
             mediaUrl: t.previewUrl || '',
-            videoEmbedUrl: '', // Will be resolved dynamically to full song/video via YouTube search embedding
+            videoEmbedUrl: '',
             artwork: t.artworkUrl100 ? t.artworkUrl100.replace('100x100', '600x600') : '',
             lyrics: `🎵 "${t.trackName}" by ${artist}\nAlbum: ${t.collectionName || 'Studio Release'}\nGenre: ${t.primaryGenreName}\n\n[Full-Length Stream Loaded via VibeCast Stage Engine]\nEnjoy the immersive broadcast across your connected speakers and devices.`,
             bio: artistBio,
@@ -787,11 +801,9 @@
 
       let embedUrl = track.videoEmbedUrl;
 
-      // If no custom YouTube URL was provided, dynamically resolve a full-length music video/audio stream via query search
       if (!embedUrl && isVideoModeEnabled) {
         try {
           const searchQuery = `${track.artist} ${track.title} official music video audio`;
-          // We map to a reliable embedded search player stream or representative full-song ID
           embedUrl = `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(searchQuery)}&enablejsapi=1&autoplay=1`;
         } catch (e) {
           embedUrl = '';
@@ -801,12 +813,7 @@
       if (embedUrl && isVideoModeEnabled) {
         ytWrap.style.display = 'block';
         document.getElementById('stageDeckHeader').textContent = 'ON AIR DECK • FULL VIDEO STREAM';
-        
-        if (ytPlayer && typeof ytPlayer.loadVideoByUrl === 'function') {
-          // If player exists
-        } else {
-          document.getElementById('ytPlayerContainer').innerHTML = `<iframe id="ytIframe" src="${embedUrl}" style="width:100%;height:100%;border:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
-        }
+        document.getElementById('ytPlayerContainer').innerHTML = `<iframe id="ytIframe" src="${embedUrl}" style="width:100%;height:100%;border:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
       } else {
         document.getElementById('stageDeckHeader').textContent = 'ON AIR DECK • FULL AUDIO STREAM';
         if (track.artwork) {
