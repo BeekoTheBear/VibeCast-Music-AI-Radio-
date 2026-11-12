@@ -16,6 +16,7 @@
       --badge: #231d3b;
       --success: #10b981;
       --danger: #ef4444;
+      --yt: #ff0033;
     }
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { margin: 0; background: var(--bg); color: var(--text); padding: 16px; padding-bottom: 110px; }
@@ -43,6 +44,7 @@
     button:active { background: var(--accent-hover); transform: scale(0.99); }
     button.secondary { background: #262b38; color: var(--text); }
     button.store-btn { background: var(--success); color: white; margin-top: 6px; }
+    button.yt-btn { background: var(--yt); color: white; margin-top: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
     button.danger-btn { background: var(--danger); color: white; padding: 4px 8px; font-size: 0.75rem; width: auto; margin: 0; }
 
     .tabs { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
@@ -64,16 +66,16 @@
 
     /* Media Stage (Video & Audio Player) */
     .media-stage { background: #0a0c10; border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 12px; text-align: center; }
-    .media-stage video, .media-stage iframe, .media-stage img { width: 100%; height: 210px; border-radius: 8px; object-fit: cover; display: none; margin: 0 auto 10px auto; background: #000; }
-    .info-box { background: #0d0f14; border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-size: 0.85rem; color: var(--muted); text-align: left; max-height: 160px; overflow-y: auto; white-space: pre-wrap; margin-top: 8px; }
+    .media-stage video, .media-stage iframe, .media-stage img { width: 100%; height: 215px; border-radius: 8px; object-fit: cover; display: none; margin: 0 auto 10px auto; background: #000; }
+    .info-box { background: #0d0f14; border: 1px solid var(--border); border-radius: 8px; padding: 14px; font-size: 0.88rem; line-height: 1.5; color: var(--text); text-align: left; max-height: 240px; overflow-y: auto; white-space: pre-wrap; margin-top: 8px; }
 
     .modal-overlay {
       position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85);
       z-index: 300; display: none; justify-content: center; align-items: center; padding: 16px; overflow-y: auto;
     }
     .modal-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto; }
-    .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
-    .setting-row input[type="checkbox"] { width: 20px; height: 20px; margin: 0; accent-color: var(--accent); }
+    .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; gap: 12px; }
+    .setting-row input[type="checkbox"] { width: 20px; height: 20px; margin: 0; accent-color: var(--accent); flex-shrink: 0; }
 
     .checkbox-group { display: flex; flex-direction: column; gap: 8px; margin: 10px 0 14px 0; font-size: 0.88rem; color: var(--muted); }
     .checkbox-group label { display: flex; align-items: center; gap: 10px; cursor: pointer; }
@@ -125,11 +127,14 @@
     </div>
   </header>
 
-  <!-- NOW PLAYING STAGE (Video, Rich Bio, Lyrics, Commerce) -->
+  <!-- NOW PLAYING STAGE (Video, Live Lyrics, Rich Bio, Commerce) -->
   <div class="card" id="nowPlayingCard" style="display: none;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; gap: 6px;">
       <span style="font-size: 0.78rem; color: #b388ff; font-weight: 600;">ON AIR DECK</span>
-      <button class="secondary" style="width: auto; padding: 5px 10px; font-size: 0.78rem; margin: 0;" onclick="skipNextTrack()">⏭ Next Shuffle</button>
+      <div style="display: flex; gap: 6px;">
+        <button style="background: var(--yt); width: auto; padding: 5px 10px; font-size: 0.75rem; margin: 0;" onclick="launchYouTubeLyricsWindow()">▶ YouTube Lyrics</button>
+        <button class="secondary" style="width: auto; padding: 5px 10px; font-size: 0.75rem; margin: 0;" onclick="skipNextTrack()">⏭ Next</button>
+      </div>
     </div>
 
     <div class="media-stage">
@@ -142,7 +147,7 @@
     </div>
 
     <div class="tabs">
-      <button class="tab-btn active" id="btnLyrics" onclick="switchInfoTab('lyrics')">📜 Lyrics</button>
+      <button class="tab-btn active" id="btnLyrics" onclick="switchInfoTab('lyrics')">📜 Live Lyrics</button>
       <button class="tab-btn" id="btnBio" onclick="switchInfoTab('bio')">📖 Bio</button>
       <button class="tab-btn" id="btnTickets" onclick="switchInfoTab('tickets')">🎟️ Tickets</button>
       <button class="tab-btn" id="btnMerch" onclick="switchInfoTab('merch')">👕 Merch</button>
@@ -182,7 +187,7 @@
     <div id="panelCustom" class="tab-panel">
       <input type="text" id="customTitle" placeholder="Song / Video Title" />
       <input type="text" id="customArtist" placeholder="Artist / Creator Name" />
-      <input type="url" id="customVideoUrl" placeholder="Paste YouTube Video URL (e.g. https://youtu.be/...)" />
+      <input type="url" id="customVideoUrl" placeholder="Paste YouTube Video URL (youtu.be/... or youtube.com/watch?v=...)" />
       <input type="url" id="customMediaUrl" placeholder="Or direct Audio URL (.mp3 / .wav)" />
       <textarea id="customLyrics" placeholder="Song lyrics..."></textarea>
       <textarea id="customBio" placeholder="Artist history / bio..."></textarea>
@@ -249,12 +254,28 @@
 
       <div id="setPanelPrefs" class="tab-panel">
         <div class="setting-row">
-          <span>Auto-Play Next Shuffle Track</span>
+          <div>
+            <div style="font-weight: 600;">Allow Play in Background</div>
+            <div style="font-size: 0.75rem; color: var(--muted);">Keep radio playing when screen is locked or app is minimized</div>
+          </div>
+          <input type="checkbox" id="prefBackgroundPlay" checked onchange="toggleBackgroundPermission()" />
+        </div>
+        <div class="setting-row">
+          <div>
+            <div style="font-weight: 600;">Auto-Play Next Shuffle Track</div>
+            <div style="font-size: 0.75rem; color: var(--muted);">Automatically advance station rotation</div>
+          </div>
           <input type="checkbox" id="prefAutoplay" checked onchange="savePreferences()" />
         </div>
         <div class="setting-row">
-          <span>Show AI Disclosure Badges</span>
+          <div>
+            <div style="font-weight: 600;">Show AI Disclosure Badges</div>
+            <div style="font-size: 0.75rem; color: var(--muted);">Display AI audio, lyrics, and video labels</div>
+          </div>
           <input type="checkbox" id="prefAiBadges" checked onchange="savePreferences()" />
+        </div>
+        <div id="bgStatusMsg" style="font-size: 0.78rem; color: var(--success); margin-top: 10px;">
+          ✅ Background audio & lock-screen controls enabled.
         </div>
         <button style="background: var(--danger); margin-top: 16px;" onclick="logoutUser()">Sign Out</button>
       </div>
@@ -278,7 +299,7 @@
       <div id="nowPlayingTitle" style="font-weight: 600; font-size: 0.88rem;">Ready to Tune In</div>
       <div id="nowPlayingSub" style="font-size: 0.72rem; color: var(--muted);">VibeCast Radio</div>
     </div>
-    <audio id="audioPlayer" controls style="height: 36px; max-width: 50%;" onended="handleTrackEnded()"></audio>
+    <audio id="audioPlayer" controls playsinline style="height: 36px; max-width: 50%;" onended="handleTrackEnded()"></audio>
   </div>
 
   <script>
@@ -290,6 +311,7 @@
     let authMethod = 'email';
     let searchTimeout = null;
     let searchCache = [];
+    let wakeLock = null;
 
     window.onload = () => {
       const savedUser = localStorage.getItem('vibecast_active_user');
@@ -298,6 +320,61 @@
         enterApp();
       }
     };
+
+    // BACKGROUND PLAYBACK & LOCK SCREEN MEDIA SESSION
+    document.addEventListener('visibilitychange', () => {
+      const audioEl = document.getElementById('audioPlayer');
+      if (!currentUser || !currentUser.prefs) return;
+
+      if (document.hidden && currentUser.prefs.backgroundPlay === false) {
+        if (!audioEl.paused) audioEl.pause();
+      } else if (!document.hidden && currentUser.prefs.backgroundPlay !== false && currentTrack && audioEl.src && audioEl.paused) {
+        audioEl.play().catch(() => {});
+      }
+    });
+
+    async function toggleBackgroundPermission() {
+      const enabled = document.getElementById('prefBackgroundPlay').checked;
+      const statusMsg = document.getElementById('bgStatusMsg');
+
+      if (enabled) {
+        try {
+          if ('wakeLock' in navigator) {
+            wakeLock = await navigator.wakeLock.request('screen');
+          }
+          if ('Notification' in window && Notification.permission === 'default') {
+            await Notification.requestPermission();
+          }
+          statusMsg.style.color = 'var(--success)';
+          statusMsg.textContent = '✅ Background playback & lock-screen media controls granted.';
+        } catch (e) {
+          statusMsg.style.color = 'var(--success)';
+          statusMsg.textContent = '✅ Background audio enabled via browser Media Session.';
+        }
+      } else {
+        if (wakeLock) {
+          wakeLock.release();
+          wakeLock = null;
+        }
+        statusMsg.style.color = 'var(--muted)';
+        statusMsg.textContent = '⏸ Background playback disabled (audio pauses when app minimizes).';
+      }
+      savePreferences();
+    }
+
+    function updateMediaSession(track) {
+      if ('mediaSession' in navigator && currentUser?.prefs?.backgroundPlay !== false) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: track.title,
+          artist: track.artist,
+          album: 'VibeCast Radio',
+          artwork: track.artwork ? [{ src: track.artwork, sizes: '512x512', type: 'image/jpeg' }] : []
+        });
+        navigator.mediaSession.setActionHandler('play', () => document.getElementById('audioPlayer').play());
+        navigator.mediaSession.setActionHandler('pause', () => document.getElementById('audioPlayer').pause());
+        navigator.mediaSession.setActionHandler('nexttrack', () => skipNextTrack());
+      }
+    }
 
     function switchAuthMethod(method) {
       authMethod = method;
@@ -336,6 +413,7 @@
 
       if (existing) {
         currentUser = JSON.parse(existing);
+        if (currentUser.prefs.backgroundPlay === undefined) currentUser.prefs.backgroundPlay = true;
       } else {
         currentUser = {
           id: identifier.toLowerCase(),
@@ -344,7 +422,7 @@
           bio: 'Music curator & VibeCast station creator.',
           provider: provider,
           paymentMethod: null,
-          prefs: { autoplay: true, aiBadges: true },
+          prefs: { backgroundPlay: true, autoplay: true, aiBadges: true },
           stations: []
         };
       }
@@ -376,6 +454,7 @@
       document.getElementById('profDisplayName').value = currentUser.displayName || '';
       document.getElementById('profHandle').value = currentUser.handle || '';
       document.getElementById('profBio').value = currentUser.bio || '';
+      document.getElementById('prefBackgroundPlay').checked = currentUser.prefs.backgroundPlay !== false;
       document.getElementById('prefAutoplay').checked = currentUser.prefs.autoplay;
       document.getElementById('prefAiBadges').checked = currentUser.prefs.aiBadges;
       renderSavedWallet();
@@ -423,6 +502,7 @@
 
     function savePreferences() {
       currentUser.prefs = {
+        backgroundPlay: document.getElementById('prefBackgroundPlay').checked,
         autoplay: document.getElementById('prefAutoplay').checked,
         aiBadges: document.getElementById('prefAiBadges').checked
       };
@@ -444,19 +524,69 @@
       renderInfoBox();
     }
 
+    // LAUNCH YOUTUBE LYRICS VIDEO WINDOW
+    function launchYouTubeLyricsWindow() {
+      if (!currentTrack) return;
+      if (currentTrack.rawYoutubeUrl) {
+        window.open(currentTrack.rawYoutubeUrl, '_blank', 'noopener,noreferrer');
+      } else {
+        const query = encodeURIComponent(`${currentTrack.artist} - ${currentTrack.title} Official Lyrics Video`);
+        window.open(`https://www.youtube.com/results?search_query=${query}`, '_blank', 'noopener,noreferrer');
+      }
+    }
+
+    // DYNAMIC LIVE LYRICS FETCHER (Lyrics.ovh API)
+    async function fetchLiveLyrics(track) {
+      if (track.lyricsFetched) return;
+      const box = document.getElementById('infoContent');
+      if (currentInfoTab === 'lyrics') {
+        box.innerHTML = `<div style="color: #b388ff;">⏳ Fetching live lyrics for "${track.title}"...</div>`;
+      }
+
+      try {
+        const cleanTitle = track.title.replace(/\(.*?\)|\[.*?\]/g, '').trim();
+        const res = await fetch(`https://api.lyrics.ovh/v1/${encodeURIComponent(track.artist)}/${encodeURIComponent(cleanTitle)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.lyrics && data.lyrics.trim().length > 0) {
+            track.lyrics = data.lyrics.trim();
+            track.lyricsFetched = true;
+            saveUserState();
+          } else {
+            track.lyrics = `No synced text lyrics found in database for "${track.title}".\n\nTap the button below to launch the live YouTube Lyrics video window.`;
+            track.lyricsFetched = true;
+          }
+        } else {
+          track.lyrics = `Live text lyrics unavailable for "${track.title}".\n\nTap the button below to launch the YouTube Lyrics video window.`;
+          track.lyricsFetched = true;
+        }
+      } catch (e) {
+        track.lyrics = `Could not reach lyrics server.\n\nTap the button below to watch the live lyrics on YouTube.`;
+      }
+
+      if (currentTrack && currentTrack.id === track.id && currentInfoTab === 'lyrics') {
+        renderInfoBox();
+      }
+    }
+
     function renderInfoBox() {
       const box = document.getElementById('infoContent');
       if (!currentTrack) return;
 
       if (currentInfoTab === 'lyrics') {
-        box.textContent = currentTrack.lyrics || "Lyrics not provided.";
+        box.innerHTML = `<div style="margin-bottom: 12px;">${escapeHtml(currentTrack.lyrics || 'Loading live lyrics...')}</div><button class="yt-btn" onclick="launchYouTubeLyricsWindow()">▶ Launch YouTube Live Lyrics Window</button>`;
       } else if (currentInfoTab === 'bio') {
         box.textContent = currentTrack.bio || "Artist biography unavailable.";
       } else if (currentInfoTab === 'tickets') {
-        box.innerHTML = `🎟️ <strong>Upcoming Event:</strong><br><br>${currentTrack.ticketsInfo || 'General Tour Event'}<br><br><button class="store-btn" onclick="openModal('ticket', '${currentTrack.ticketsInfo}')">🎟️ Buy Ticket In-App</button>`;
+        box.innerHTML = `🎟️ <strong>Upcoming Event:</strong><br><br>${escapeHtml(currentTrack.ticketsInfo || 'General Tour Event')}<br><br><button class="store-btn" onclick="openModal('ticket', '${escapeHtml(currentTrack.ticketsInfo)}')">🎟️ Buy Ticket In-App</button>`;
       } else if (currentInfoTab === 'merch') {
-        box.innerHTML = `👕 <strong>Official Merchandise:</strong><br><br>${currentTrack.merchInfo || 'Exclusive Merch'}<br><br><button class="store-btn" onclick="openModal('merch', '${currentTrack.merchInfo}')">🛍️ Order Merch In-App</button>`;
+        box.innerHTML = `👕 <strong>Official Merchandise:</strong><br><br>${escapeHtml(currentTrack.merchInfo || 'Exclusive Merch')}<br><br><button class="store-btn" onclick="openModal('merch', '${escapeHtml(currentTrack.merchInfo)}')">🛍️ Order Merch In-App</button>`;
       }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
     function openModal(type, info) {
@@ -484,7 +614,6 @@
       closeModal();
     }
 
-    // STRICT MUSIC SEARCH WITH RICH WIKIPEDIA BIOS
     function searchGlobalArtists(query) {
       const box = document.getElementById('artistSuggestions');
       if (!query || query.trim().length < 2) { box.style.display = 'none'; return; }
@@ -553,8 +682,7 @@
       const station = stations.find(s => s.id == stationId);
       if (station.artists.includes(artist)) return alert('Artist already seeded.');
 
-      // Fetch Rich Wikipedia Artist Bio
-      let artistBio = `${artist} is a prominent recording artist known for impactful releases and global charting hits across streaming platforms.`;
+      let artistBio = `${artist} is a recording artist featured on VibeCast Radio.`;
       try {
         const wikiRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(artist)}`);
         if (wikiRes.ok) {
@@ -574,8 +702,10 @@
             title: t.trackName,
             mediaUrl: t.previewUrl,
             videoEmbedUrl: '',
+            rawYoutubeUrl: '',
             artwork: t.artworkUrl100 ? t.artworkUrl100.replace('100x100', '600x600') : '',
-            lyrics: `🎵 "${t.trackName}" by ${artist}\nAlbum: ${t.collectionName || 'Single'}\nGenre: ${t.primaryGenreName}\n\n(Official preview streaming live via VibeCast)`,
+            lyrics: '',
+            lyricsFetched: false,
             bio: artistBio,
             ticketsInfo: `${artist} Live 2026 Tour - General Admission ($45.00)`,
             merchInfo: `${artist} Official Tour Hoodie ($50.00)`,
@@ -592,10 +722,16 @@
 
       document.getElementById('artistName').value = '';
       updateUI();
-      showToast('trackToast', `Seeded ${artist} with rich bio & tracks!`);
+      showToast('trackToast', `Seeded ${artist} with live lyrics & bio!`);
     }
 
-    // YOUTUBE & CUSTOM MEDIA CREATION
+    function extractYouTubeId(url) {
+      if (!url) return '';
+      const regExp = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+      const match = url.match(regExp);
+      return match ? match[1] : '';
+    }
+
     function addCustomCreation() {
       const stationId = document.getElementById('stationSelect').value;
       const title = document.getElementById('customTitle').value.trim();
@@ -609,13 +745,8 @@
 
       if (!stationId || !title) return alert('Select a channel and enter a title.');
 
-      let videoEmbedUrl = '';
-      if (ytUrl) {
-        let videoId = '';
-        if (ytUrl.includes('youtu.be/')) videoId = ytUrl.split('youtu.be/')[1].split('?')[0];
-        else if (ytUrl.includes('watch?v=')) videoId = ytUrl.split('watch?v=')[1].split('&')[0];
-        if (videoId) videoEmbedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
-      }
+      const videoId = extractYouTubeId(ytUrl);
+      const videoEmbedUrl = videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1` : '';
 
       const station = stations.find(s => s.id == stationId);
       const track = {
@@ -624,8 +755,10 @@
         artist,
         mediaUrl: audioUrl || '',
         videoEmbedUrl: videoEmbedUrl,
+        rawYoutubeUrl: ytUrl || '',
         artwork: '',
-        lyrics: lyrics || 'Original custom track lyrics.',
+        lyrics: lyrics || '',
+        lyricsFetched: Boolean(lyrics),
         bio: bio || `Artist biography and history for ${artist}.`,
         ticketsInfo,
         merchInfo,
@@ -649,7 +782,7 @@
       document.getElementById('customMerch').value = '';
 
       updateUI();
-      showToast('trackToast', `"${title}" added with YouTube video support!`);
+      showToast('trackToast', `"${title}" added to channel!`);
     }
 
     function removeArtist(stationId, artistName) {
@@ -698,14 +831,12 @@
       const artEl = document.getElementById('artStage');
       const audioEl = document.getElementById('audioPlayer');
 
-      // Reset media elements
       videoEl.pause(); videoEl.style.display = 'none';
       iframeEl.src = ''; iframeEl.style.display = 'none';
       audioEl.pause(); audioEl.style.display = 'none';
       artEl.style.display = 'none';
 
       if (track.videoEmbedUrl) {
-        // Play embedded YouTube video live on stage!
         iframeEl.src = track.videoEmbedUrl;
         iframeEl.style.display = 'block';
       } else if (track.artwork) {
@@ -713,13 +844,15 @@
         artEl.style.display = 'block';
         audioEl.src = track.mediaUrl;
         audioEl.style.display = 'block';
-        audioEl.play();
+        audioEl.play().catch(() => {});
       } else {
         audioEl.src = track.mediaUrl;
         audioEl.style.display = 'block';
-        audioEl.play();
+        audioEl.play().catch(() => {});
       }
 
+      updateMediaSession(track);
+      fetchLiveLyrics(track);
       renderInfoBox();
     }
 
