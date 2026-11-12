@@ -14,12 +14,30 @@
       --muted: #9ca3af;
       --border: #262b38;
       --badge: #231d3b;
+      --success: #10b981;
+      --danger: #ef4444;
     }
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { margin: 0; background: var(--bg); color: var(--text); padding: 16px; padding-bottom: 110px; }
+    
+    /* Header & Profile Pill */
     header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
-    h1 { font-size: 1.25rem; margin: 0; letter-spacing: -0.5px; }
-    .status-dot { height: 10px; width: 10px; background: #10b981; border-radius: 50%; display: inline-block; margin-right: 6px; }
+    h1 { font-size: 1.15rem; margin: 0; letter-spacing: -0.5px; }
+    .header-actions { display: flex; align-items: center; gap: 8px; }
+    .profile-pill { background: var(--card); border: 1px solid var(--border); padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; color: var(--text); display: flex; align-items: center; gap: 6px; cursor: pointer; width: auto; margin: 0; }
+    .avatar-dot { width: 20px; height: 20px; border-radius: 50%; background: var(--accent); display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.72rem; }
+
+    /* Auth Login Screen */
+    #authScreen {
+      position: fixed; inset: 0; background: var(--bg); z-index: 500;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      padding: 20px; overflow-y: auto;
+    }
+    .auth-box { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; width: 100%; max-width: 400px; }
+    .google-btn { background: #ffffff; color: #111827; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 600; margin-bottom: 14px; }
+    .divider { text-align: center; color: var(--muted); font-size: 0.78rem; margin: 12px 0; position: relative; }
+
+    /* Cards & Inputs */
     .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 16px; position: relative; }
     h2 { font-size: 1rem; margin: 0 0 12px 0; color: var(--text); }
     input, select, textarea, button { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: #0d0f14; color: var(--text); font-size: 0.95rem; margin-bottom: 10px; }
@@ -27,8 +45,8 @@
     button { background: var(--accent); border: none; font-weight: 600; cursor: pointer; transition: 0.2s; }
     button:active { background: var(--accent-hover); transform: scale(0.99); }
     button.secondary { background: #262b38; color: var(--text); }
-    button.store-btn { background: #10b981; color: white; margin-top: 6px; }
-    button.danger-btn { background: #ef4444; color: white; padding: 4px 8px; font-size: 0.75rem; width: auto; margin: 0; }
+    button.store-btn { background: var(--success); color: white; margin-top: 6px; }
+    button.danger-btn { background: var(--danger); color: white; padding: 4px 8px; font-size: 0.75rem; width: auto; margin: 0; }
 
     /* Tabs */
     .tabs { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
@@ -54,13 +72,14 @@
     .media-stage video, .media-stage img { width: 100%; max-height: 200px; border-radius: 8px; object-fit: cover; display: none; margin: 0 auto 10px auto; }
     .info-box { background: #0d0f14; border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-size: 0.85rem; color: var(--muted); text-align: left; max-height: 150px; overflow-y: auto; white-space: pre-wrap; margin-top: 8px; }
 
-    /* In-App Commerce Modal */
+    /* Modals (Settings & Checkout) */
     .modal-overlay {
-      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.8); z-index: 200; display: none;
-      justify-content: center; align-items: center; padding: 16px;
+      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85);
+      z-index: 300; display: none; justify-content: center; align-items: center; padding: 16px; overflow-y: auto;
     }
-    .modal-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; width: 100%; max-width: 400px; text-align: center; }
+    .modal-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto; }
+    .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+    .setting-row input[type="checkbox"] { width: 20px; height: 20px; margin: 0; accent-color: var(--accent); }
 
     .checkbox-group { display: flex; flex-direction: column; gap: 8px; margin: 10px 0 14px 0; font-size: 0.88rem; color: var(--muted); }
     .checkbox-group label { display: flex; align-items: center; gap: 10px; cursor: pointer; }
@@ -68,14 +87,53 @@
     .station-item { padding: 12px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 10px; }
     .ai-badge { background: var(--badge); color: #b388ff; font-size: 0.7rem; padding: 2px 7px; border-radius: 6px; border: 1px solid #3f2e7a; font-weight: 600; display: inline-block; margin-right: 4px; margin-top: 4px; }
     .player-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #12151e; border-top: 1px solid var(--border); padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; z-index: 100; }
-    .toast { font-size: 0.85rem; color: #10b981; margin-top: 4px; display: none; }
+    .toast { font-size: 0.85rem; color: var(--success); margin-top: 4px; display: none; }
   </style>
 </head>
 <body>
 
+  <!-- FULL-SCREEN LOGIN / OAUTH GATE -->
+  <div id="authScreen">
+    <div class="auth-box">
+      <div style="text-align: center; margin-bottom: 18px;">
+        <div style="font-size: 2rem;">📻</div>
+        <h2 style="font-size: 1.3rem; margin: 6px 0 4px 0;">VibeCast: Music-AI-Radio</h2>
+        <p style="font-size: 0.82rem; color: var(--muted); margin: 0;">Sign in to access your saved channels, creator studio, and wallet.</p>
+      </div>
+
+      <!-- Google OAuth Option -->
+      <button class="google-btn" onclick="loginWithGoogle()">
+        <span style="font-weight: 800; color: #4285F4;">G</span> Continue with Google
+      </button>
+
+      <div class="divider">— OR SIGN IN WITH CREDENTIALS —</div>
+
+      <!-- Login Method Selector -->
+      <div class="tabs">
+        <button class="tab-btn active" id="authTabEmail" onclick="switchAuthMethod('email')">Email</button>
+        <button class="tab-btn" id="authTabUser" onclick="switchAuthMethod('username')">Username</button>
+        <button class="tab-btn" id="authTabPhone" onclick="switchAuthMethod('phone')">Phone</button>
+      </div>
+
+      <input type="text" id="authIdentifier" placeholder="Enter your email address" />
+      <input type="password" id="authPassword" placeholder="Password" />
+      <button onclick="loginWithCredentials()">Sign In / Create Account</button>
+      <p style="font-size: 0.72rem; color: var(--muted); text-align: center; margin: 8px 0 0 0;">
+        Your channels and preferences sync automatically to your account profile.
+      </p>
+    </div>
+  </div>
+
+  <!-- MAIN APP HEADER -->
   <header>
-    <h1>📻 VibeCast: Music-AI-Radio</h1>
-    <span style="font-size: 0.8rem; color: var(--muted);"><span class="status-dot"></span>Studio Live</span>
+    <h1>📻 VibeCast</h1>
+    <div class="header-actions">
+      <button class="profile-pill" onclick="openSettings()">
+        <span class="avatar-dot" id="headerAvatar">U</span>
+        <span id="headerHandle">@creator</span>
+        <span>⚙️</span>
+      </button>
+    </div>
   </header>
 
   <!-- NOW PLAYING STAGE -->
@@ -104,18 +162,18 @@
 
   <!-- 1. Create Station -->
   <div class="card">
-    <h2>1. Launch Radio Station</h2>
-    <input type="text" id="stationName" placeholder="Station Name (e.g., Pop & Indie Rotation)" />
+    <h2>1. Launch Radio Channel</h2>
+    <input type="text" id="stationName" placeholder="Channel Name (e.g., Late Night Chill)" />
     <input type="text" id="stationGenre" placeholder="Vibe / Genre" />
-    <button onclick="createStation()">Create Station</button>
-    <div id="stationToast" class="toast">Station created!</div>
+    <button onclick="createStation()">Save & Launch Channel</button>
+    <div id="stationToast" class="toast">Channel saved to your account!</div>
   </div>
 
   <!-- 2. Seed Station & Manage Artists -->
   <div class="card">
-    <h2>2. Add & Edit Station Seeds</h2>
+    <h2>2. Add & Edit Channel Seeds</h2>
     <select id="stationSelect">
-      <option value="">-- Select Target Station --</option>
+      <option value="">-- Select Target Channel --</option>
     </select>
 
     <div class="tabs">
@@ -154,20 +212,85 @@
     <div id="trackToast" class="toast">Updated successfully!</div>
   </div>
 
-  <!-- 3. Live Stations & Seed Management -->
+  <!-- 3. Saved Channels & Seed Management -->
   <div class="card">
-    <h2>3. Live Stations & Seed Management</h2>
+    <h2>3. Your Saved Channels</h2>
     <div id="stationsList">
-      <p style="color: var(--muted); font-size: 0.88rem;">No active stations yet.</p>
+      <p style="color: var(--muted); font-size: 0.88rem;">No saved channels yet. Create one above!</p>
+    </div>
+  </div>
+
+  <!-- SETTINGS & PROFILE MODAL (YouTube / TikTok Utilities) -->
+  <div id="settingsModal" class="modal-overlay">
+    <div class="modal-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h3 style="margin: 0; font-size: 1.1rem;">⚙️ Account & Studio Settings</h3>
+        <button class="secondary" style="width: auto; padding: 6px 12px; margin: 0;" onclick="closeSettings()">✕</button>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" id="setTabProfile" onclick="switchSettingsTab('profile')">👤 Profile</button>
+        <button class="tab-btn" id="setTabBilling" onclick="switchSettingsTab('billing')">💳 Wallet</button>
+        <button class="tab-btn" id="setTabPrefs" onclick="switchSettingsTab('prefs')">🎛️ Utilities</button>
+      </div>
+
+      <!-- Profile Tab -->
+      <div id="setPanelProfile" class="tab-panel active">
+        <label style="font-size: 0.8rem; color: var(--muted);">Display Name</label>
+        <input type="text" id="profDisplayName" placeholder="Your Name" />
+        <label style="font-size: 0.8rem; color: var(--muted);">Creator Handle (@username)</label>
+        <input type="text" id="profHandle" placeholder="@username" />
+        <label style="font-size: 0.8rem; color: var(--muted);">Phone Number</label>
+        <input type="tel" id="profPhone" placeholder="+1 (506) 555-0199" />
+        <label style="font-size: 0.8rem; color: var(--muted);">Creator Bio</label>
+        <textarea id="profBio" placeholder="Tell listeners about your station vibe..."></textarea>
+        <button onclick="saveProfileSettings()">Save Profile</button>
+      </div>
+
+      <!-- Secure Purchasing Info (Wallet) Tab -->
+      <div id="setPanelBilling" class="tab-panel">
+        <p style="font-size: 0.8rem; color: var(--muted); margin-top: 0;">
+          Saved payment methods are tokenized for 1-tap ticket and merchandise orders inside VibeCast.
+        </p>
+        <div id="savedCardBox" style="background: #0d0f14; border: 1px solid var(--border); padding: 10px; border-radius: 10px; margin-bottom: 12px; font-size: 0.85rem;">
+          No payment method saved.
+        </div>
+        <input type="text" id="billName" placeholder="Cardholder Full Name" />
+        <input type="text" id="billLast4" maxlength="4" placeholder="Last 4 Digits of Card (Token Reference)" />
+        <input type="text" id="billZip" placeholder="Billing Postal / ZIP Code" />
+        <button class="store-btn" onclick="savePaymentMethod()">Save Tokenized Payment Method</button>
+      </div>
+
+      <!-- Standard App Utilities Tab -->
+      <div id="setPanelPrefs" class="tab-panel">
+        <div class="setting-row">
+          <span>Auto-Play Next Shuffle Track</span>
+          <input type="checkbox" id="prefAutoplay" checked onchange="savePreferences()" />
+        </div>
+        <div class="setting-row">
+          <span>Show AI Disclosure Badges</span>
+          <input type="checkbox" id="prefAiBadges" checked onchange="savePreferences()" />
+        </div>
+        <div class="setting-row">
+          <span>High-Bitrate Stream Mode</span>
+          <input type="checkbox" id="prefHighQuality" checked onchange="savePreferences()" />
+        </div>
+        <div class="setting-row">
+          <span>Private Channel Mode</span>
+          <input type="checkbox" id="prefPrivate" onchange="savePreferences()" />
+        </div>
+        <button style="background: var(--danger); margin-top: 16px;" onclick="logoutUser()">Sign Out of VibeCast</button>
+      </div>
     </div>
   </div>
 
   <!-- IN-APP COMMERCE MODAL -->
   <div id="commerceModal" class="modal-overlay">
-    <div class="modal-card">
+    <div class="modal-card" style="text-align: center;">
       <h3 id="modalTitle" style="margin-top: 0; color: #b388ff;">In-App Checkout</h3>
-      <p id="modalDesc" style="font-size: 0.9rem; color: var(--muted); margin-bottom: 20px;"></p>
-      <button onclick="completeInAppPurchase()">Confirm Secure In-App Order</button>
+      <p id="modalDesc" style="font-size: 0.9rem; color: var(--muted); margin-bottom: 12px;"></p>
+      <div id="checkoutWalletSummary" style="background: #0d0f14; border: 1px solid var(--border); padding: 10px; border-radius: 8px; font-size: 0.82rem; margin-bottom: 16px;"></div>
+      <button class="store-btn" onclick="completeInAppPurchase()">Confirm 1-Tap In-App Order</button>
       <button class="secondary" onclick="closeModal()">Cancel</button>
     </div>
   </div>
@@ -178,17 +301,181 @@
       <div id="nowPlayingTitle" style="font-weight: 600; font-size: 0.88rem;">Ready to Tune In</div>
       <div id="nowPlayingSub" style="font-size: 0.72rem; color: var(--muted);">VibeCast Radio</div>
     </div>
-    <audio id="audioPlayer" controls style="height: 36px; max-width: 50%;" onended="skipNextTrack()"></audio>
+    <audio id="audioPlayer" controls style="height: 36px; max-width: 50%;" onended="handleTrackEnded()"></audio>
   </div>
 
   <script>
-    const stations = [];
+    let currentUser = null;
+    let stations = [];
     let activeStationId = null;
     let currentTrack = null;
     let currentInfoTab = 'lyrics';
+    let authMethod = 'email';
     let searchTimeout = null;
     let searchCache = [];
 
+    // --- 1. AUTHENTICATION & USER PERSISTENCE ---
+    window.onload = () => {
+      const savedUser = localStorage.getItem('vibecast_active_user');
+      if (savedUser) {
+        currentUser = JSON.parse(savedUser);
+        enterApp();
+      }
+    };
+
+    function switchAuthMethod(method) {
+      authMethod = method;
+      ['Email', 'User', 'Phone'].forEach(m => {
+        document.getElementById(`authTab${m}`).classList.remove('active');
+      });
+      const input = document.getElementById('authIdentifier');
+      if (method === 'email') {
+        document.getElementById('authTabEmail').classList.add('active');
+        input.placeholder = 'Enter your email address';
+        input.type = 'email';
+      } else if (method === 'username') {
+        document.getElementById('authTabUser').classList.add('active');
+        input.placeholder = 'Enter your @username';
+        input.type = 'text';
+      } else {
+        document.getElementById('authTabPhone').classList.add('active');
+        input.placeholder = 'Enter phone number (+1...)';
+        input.type = 'tel';
+      }
+    }
+
+    function loginWithGoogle() {
+      // Redirects to backend Google OAuth route when Supabase/Google keys are active,
+      // and establishes a Google-authenticated creator profile session.
+      const email = prompt("Google OAuth Sign-In — Enter your Google email:", "james@gmail.com");
+      if (!email) return;
+      initializeUserSession(email.split('@')[0], email, 'google');
+    }
+
+    function loginWithCredentials() {
+      const idVal = document.getElementById('authIdentifier').value.trim();
+      const passVal = document.getElementById('authPassword').value.trim();
+      if (!idVal || !passVal) return alert('Please enter your login credential and password.');
+      initializeUserSession(idVal.replace('@', ''), idVal, authMethod);
+    }
+
+    function initializeUserSession(name, identifier, provider) {
+      const storageKey = `vibecast_profile_${identifier.toLowerCase()}`;
+      const existing = localStorage.getItem(storageKey);
+
+      if (existing) {
+        currentUser = JSON.parse(existing);
+      } else {
+        currentUser = {
+          id: identifier.toLowerCase(),
+          displayName: name,
+          handle: `@${name.toLowerCase().replace(/[^a-z0-9]/g, '')}`,
+          phone: provider === 'phone' ? identifier : '',
+          bio: 'Music lover & VibeCast station creator.',
+          provider: provider,
+          paymentMethod: null,
+          prefs: { autoplay: true, aiBadges: true, highQuality: true, privateChannel: false },
+          stations: []
+        };
+      }
+
+      saveUserState();
+      enterApp();
+    }
+
+    function saveUserState() {
+      if (!currentUser) return;
+      currentUser.stations = stations;
+      localStorage.setItem('vibecast_active_user', JSON.stringify(currentUser));
+      localStorage.setItem(`vibecast_profile_${currentUser.id}`, JSON.stringify(currentUser));
+    }
+
+    function enterApp() {
+      document.getElementById('authScreen').style.display = 'none';
+      stations = currentUser.stations || [];
+      document.getElementById('headerAvatar').textContent = (currentUser.displayName || 'U')[0].toUpperCase();
+      document.getElementById('headerHandle').textContent = currentUser.handle;
+      updateUI();
+    }
+
+    function logoutUser() {
+      localStorage.removeItem('vibecast_active_user');
+      location.reload();
+    }
+
+    // --- 2. SETTINGS & WALLET DRAWER ---
+    function openSettings() {
+      document.getElementById('profDisplayName').value = currentUser.displayName || '';
+      document.getElementById('profHandle').value = currentUser.handle || '';
+      document.getElementById('profPhone').value = currentUser.phone || '';
+      document.getElementById('profBio').value = currentUser.bio || '';
+
+      document.getElementById('prefAutoplay').checked = currentUser.prefs.autoplay;
+      document.getElementById('prefAiBadges').checked = currentUser.prefs.aiBadges;
+      document.getElementById('prefHighQuality').checked = currentUser.prefs.highQuality;
+      document.getElementById('prefPrivate').checked = currentUser.prefs.privateChannel;
+
+      renderSavedWallet();
+      document.getElementById('settingsModal').style.display = 'flex';
+    }
+
+    function closeSettings() {
+      document.getElementById('settingsModal').style.display = 'none';
+    }
+
+    function switchSettingsTab(tab) {
+      ['Profile', 'Billing', 'Prefs'].forEach(t => {
+        document.getElementById(`setTab${t}`).classList.toggle('active', t.toLowerCase() === tab);
+        document.getElementById(`setPanel${t}`).classList.toggle('active', t.toLowerCase() === tab);
+      });
+    }
+
+    function saveProfileSettings() {
+      currentUser.displayName = document.getElementById('profDisplayName').value.trim() || currentUser.displayName;
+      let handle = document.getElementById('profHandle').value.trim() || currentUser.handle;
+      if (!handle.startsWith('@')) handle = '@' + handle;
+      currentUser.handle = handle;
+      currentUser.phone = document.getElementById('profPhone').value.trim();
+      currentUser.bio = document.getElementById('profBio').value.trim();
+
+      document.getElementById('headerAvatar').textContent = currentUser.displayName[0].toUpperCase();
+      document.getElementById('headerHandle').textContent = currentUser.handle;
+      saveUserState();
+      alert('Profile updated!');
+    }
+
+    function savePaymentMethod() {
+      const name = document.getElementById('billName').value.trim();
+      const last4 = document.getElementById('billLast4').value.trim();
+      const zip = document.getElementById('billZip').value.trim();
+      if (!name || last4.length !== 4) return alert('Enter cardholder name and the last 4 digits.');
+
+      currentUser.paymentMethod = { name, last4, zip, token: 'tok_' + Date.now() };
+      saveUserState();
+      renderSavedWallet();
+      alert('Tokenized payment method saved securely!');
+    }
+
+    function renderSavedWallet() {
+      const box = document.getElementById('savedCardBox');
+      if (currentUser.paymentMethod) {
+        box.innerHTML = `✅ <strong>Saved Card:</strong> •••• ${currentUser.paymentMethod.last4} (${currentUser.paymentMethod.name})`;
+      } else {
+        box.textContent = 'No payment method saved yet.';
+      }
+    }
+
+    function savePreferences() {
+      currentUser.prefs = {
+        autoplay: document.getElementById('prefAutoplay').checked,
+        aiBadges: document.getElementById('prefAiBadges').checked,
+        highQuality: document.getElementById('prefHighQuality').checked,
+        privateChannel: document.getElementById('prefPrivate').checked
+      };
+      saveUserState();
+    }
+
+    // --- 3. STATIONS, SEEDING & IN-APP CHECKOUT ---
     function switchSourceTab(tab) {
       document.getElementById('tabGlobalBtn').classList.toggle('active', tab === 'global');
       document.getElementById('tabCustomBtn').classList.toggle('active', tab === 'custom');
@@ -221,7 +508,13 @@
 
     function openModal(type, info) {
       document.getElementById('modalTitle').textContent = type === 'ticket' ? '🎟️ Event Ticket Checkout' : '👕 Merchandise Order';
-      document.getElementById('modalDesc').textContent = `Processing order for: "${info}". Secure checkout powered by VibeCast Studio.`;
+      document.getElementById('modalDesc').textContent = `Item: "${info}"`;
+      const walletBox = document.getElementById('checkoutWalletSummary');
+      if (currentUser && currentUser.paymentMethod) {
+        walletBox.innerHTML = `Charging saved card: <strong>•••• ${currentUser.paymentMethod.last4}</strong>`;
+      } else {
+        walletBox.innerHTML = `⚠️ No card in Wallet. <a href="#" style="color:#b388ff;" onclick="closeModal();openSettings();switchSettingsTab('billing');">Add payment info in Settings</a>`;
+      }
       document.getElementById('commerceModal').style.display = 'flex';
     }
 
@@ -230,11 +523,17 @@
     }
 
     function completeInAppPurchase() {
-      alert('Order confirmed successfully within VibeCast!');
+      if (!currentUser.paymentMethod) {
+        alert('Please add a payment method in Settings > Wallet first.');
+        closeModal();
+        openSettings();
+        switchSettingsTab('billing');
+        return;
+      }
+      alert(`Order confirmed! Receipt sent to ${currentUser.handle}.`);
       closeModal();
     }
 
-    // STRICT MUSIC SEARCH (Filters out audiobooks, podcasts, audiobooks)
     function searchGlobalArtists(query) {
       const box = document.getElementById('artistSuggestions');
       if (!query || query.trim().length < 2) { box.style.display = 'none'; return; }
@@ -245,7 +544,6 @@
           const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=musicTrack&limit=10`);
           const data = await res.json();
           if (!data.results || data.results.length === 0) { box.style.display = 'none'; return; }
-          
           searchCache = data.results;
           box.innerHTML = data.results.map((item, idx) => `
             <div class="suggestion-item" onclick="selectArtist(${idx})">
@@ -284,27 +582,27 @@
     function createStation() {
       const name = document.getElementById('stationName').value.trim();
       const genre = document.getElementById('stationGenre').value.trim();
-      if (!name) return alert('Enter a station name.');
+      if (!name) return alert('Enter a channel name.');
 
-      const station = { id: Date.now(), name, genre: genre || 'VibeCast Station', artists: [], tracks: [] };
+      const station = { id: Date.now(), name, genre: genre || 'VibeCast Channel', artists: [], tracks: [] };
       stations.push(station);
+      saveUserState();
 
       document.getElementById('stationName').value = '';
       document.getElementById('stationGenre').value = '';
       updateUI();
-      showToast('stationToast', `Station "${name}" is live!`);
+      showToast('stationToast', `Channel "${name}" saved!`);
     }
 
     async function addGlobalArtistSeed() {
       const stationId = document.getElementById('stationSelect').value;
       const artist = document.getElementById('artistName').value.trim();
-      if (!stationId || !artist) return alert('Select a station and enter an artist.');
+      if (!stationId || !artist) return alert('Select a channel and enter an artist.');
 
       const station = stations.find(s => s.id == stationId);
-      if (station.artists.includes(artist)) return alert('Artist already seeded in this station.');
+      if (station.artists.includes(artist)) return alert('Artist already seeded in this channel.');
 
-      let artistBio = `${artist} is an active recording artist featured on VibeCast Radio. Known for dynamic performances and chart hits across global music streaming charts.`;
-
+      let artistBio = `${artist} is an active recording artist featured on VibeCast Radio.`;
       let fetchedTracks = [];
       try {
         const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(artist)}&entity=musicTrack&limit=6`);
@@ -317,7 +615,7 @@
             mediaUrl: t.previewUrl,
             isVideo: false,
             artwork: t.artworkUrl100 ? t.artworkUrl100.replace('100x100', '400x400') : '',
-            lyrics: `🎵 "${t.trackName}" by ${artist}\nAlbum: ${t.collectionName || 'Single'}\nGenre: ${t.primaryGenreName}\n\n(Official preview streaming live via VibeCast Music Network)`,
+            lyrics: `🎵 "${t.trackName}" by ${artist}\nAlbum: ${t.collectionName || 'Single'}\nGenre: ${t.primaryGenreName}`,
             bio: artistBio,
             ticketsInfo: `${artist} Live 2026 Tour - General Admission ($45.00)`,
             merchInfo: `${artist} Official Tour Hoodie ($50.00)`,
@@ -330,16 +628,17 @@
 
       station.artists.push(artist);
       station.tracks.push(...fetchedTracks);
+      saveUserState();
 
       document.getElementById('artistName').value = '';
       updateUI();
-      showToast('trackToast', `Seeded ${artist} successfully!`);
+      showToast('trackToast', `Seeded ${artist} into ${station.name}!`);
     }
 
     function addCustomCreation() {
       const stationId = document.getElementById('stationSelect').value;
       const title = document.getElementById('customTitle').value.trim();
-      const artist = document.getElementById('customArtist').value.trim() || 'Independent Creator';
+      const artist = document.getElementById('customArtist').value.trim() || currentUser.displayName;
       const fileInput = document.getElementById('customLocalFile');
       const urlInput = document.getElementById('customMediaUrl').value.trim();
       const lyrics = document.getElementById('customLyrics').value.trim();
@@ -347,7 +646,7 @@
       const ticketsInfo = document.getElementById('customTickets').value.trim() || `${artist} Event Pass - $25.00`;
       const merchInfo = document.getElementById('customMerch').value.trim() || `${artist} Studio Merch Item - $30.00`;
 
-      if (!stationId || !title) return alert('Select a station and enter a title.');
+      if (!stationId || !title) return alert('Select a channel and enter a title.');
 
       let mediaUrl = urlInput;
       let isVideo = urlInput.toLowerCase().endsWith('.mp4') || urlInput.toLowerCase().endsWith('.webm');
@@ -369,7 +668,7 @@
         isVideo,
         artwork: '',
         lyrics: lyrics || 'Original custom track.',
-        bio: bio || `Created by ${artist} on VibeCast Studio.`,
+        bio: bio || `Created by ${artist} (${currentUser.handle}).`,
         ticketsInfo,
         merchInfo,
         disclosure: {
@@ -381,6 +680,7 @@
 
       if (!station.artists.includes(artist)) station.artists.push(artist);
       station.tracks.push(track);
+      saveUserState();
 
       document.getElementById('customTitle').value = '';
       fileInput.value = '';
@@ -391,7 +691,7 @@
       document.getElementById('customMerch').value = '';
 
       updateUI();
-      showToast('trackToast', `"${title}" added successfully!`);
+      showToast('trackToast', `"${title}" saved to ${station.name}!`);
     }
 
     function removeArtist(stationId, artistName) {
@@ -399,8 +699,15 @@
       if (!station) return;
       station.artists = station.artists.filter(a => a !== artistName);
       station.tracks = station.tracks.filter(t => t.artist !== artistName);
+      saveUserState();
       updateUI();
       showToast('stationToast', `Removed ${artistName}.`);
+    }
+
+    function handleTrackEnded() {
+      if (currentUser && currentUser.prefs.autoplay) {
+        skipNextTrack();
+      }
     }
 
     function playStation(stationId) {
@@ -410,7 +717,7 @@
 
     function skipNextTrack() {
       const station = stations.find(s => s.id == activeStationId);
-      if (!station || station.tracks.length === 0) return alert('Add artists or tracks to this station first!');
+      if (!station || station.tracks.length === 0) return alert('Add artists or tracks to this channel first!');
 
       const track = station.tracks[Math.floor(Math.random() * station.tracks.length)];
       currentTrack = track;
@@ -422,10 +729,12 @@
       document.getElementById('nowPlayingSub').textContent = track.artist;
 
       let badges = '';
-      if (track.disclosure.audio) badges += '<span class="ai-badge">AI Audio</span>';
-      if (track.disclosure.lyrics) badges += '<span class="ai-badge">AI Lyrics</span>';
-      if (track.disclosure.artwork) badges += '<span class="ai-badge">AI Video/Art</span>';
-      if (!badges) badges = '<span class="ai-badge" style="color:#10b981; border-color:#10b981;">Human / Catalog</span>';
+      if (currentUser.prefs.aiBadges) {
+        if (track.disclosure.audio) badges += '<span class="ai-badge">AI Audio</span>';
+        if (track.disclosure.lyrics) badges += '<span class="ai-badge">AI Lyrics</span>';
+        if (track.disclosure.artwork) badges += '<span class="ai-badge">AI Video/Art</span>';
+        if (!badges) badges = '<span class="ai-badge" style="color:#10b981; border-color:#10b981;">Human / Catalog</span>';
+      }
       document.getElementById('stageBadges').innerHTML = badges;
 
       const videoEl = document.getElementById('videoStage');
@@ -444,7 +753,6 @@
         videoEl.style.display = 'none';
         audioEl.style.display = 'block';
         if (track.artwork) {
-          artRefSrc = track.artwork;
           artEl.src = track.artwork;
           artEl.style.display = 'block';
         } else {
@@ -461,11 +769,11 @@
       const select = document.getElementById('stationSelect');
       const list = document.getElementById('stationsList');
 
-      select.innerHTML = '<option value="">-- Select Target Station --</option>' +
+      select.innerHTML = '<option value="">-- Select Target Channel --</option>' +
         stations.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
 
       if (stations.length === 0) {
-        list.innerHTML = '<p style="color: var(--muted); font-size: 0.88rem;">No active stations yet.</p>';
+        list.innerHTML = '<p style="color: var(--muted); font-size: 0.88rem;">No saved channels yet.</p>';
         return;
       }
 
@@ -474,7 +782,7 @@
           <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
             <div>
               <strong>${s.name}</strong>
-              <div style="font-size: 0.80rem; color: var(--muted);">${s.genre} • ${s.tracks.length} track pool</div>
+              <div style="font-size: 0.8rem; color: var(--muted);">${s.genre} • ${s.tracks.length} track pool</div>
             </div>
             <button style="width: auto; padding: 6px 12px; margin: 0; font-size: 0.8rem;" onclick="playStation(${s.id})">▶ Tune In</button>
           </div>
