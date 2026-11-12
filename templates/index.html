@@ -54,7 +54,7 @@
     .media-stage video, .media-stage img { width: 100%; max-height: 200px; border-radius: 8px; object-fit: cover; display: none; margin: 0 auto 10px auto; }
     .info-box { background: #0d0f14; border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-size: 0.85rem; color: var(--muted); text-align: left; max-height: 150px; overflow-y: auto; white-space: pre-wrap; margin-top: 8px; }
 
-    /* In-App Commerce Modal Overlay */
+    /* In-App Commerce Modal */
     .modal-overlay {
       position: fixed; top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(0, 0, 0, 0.8); z-index: 200; display: none;
@@ -105,7 +105,7 @@
   <!-- 1. Create Station -->
   <div class="card">
     <h2>1. Launch Radio Station</h2>
-    <input type="text" id="stationName" placeholder="Station Name (e.g., Festival Vibe)" />
+    <input type="text" id="stationName" placeholder="Station Name (e.g., Pop & Indie Rotation)" />
     <input type="text" id="stationGenre" placeholder="Vibe / Genre" />
     <button onclick="createStation()">Create Station</button>
     <div id="stationToast" class="toast">Station created!</div>
@@ -125,7 +125,7 @@
 
     <div id="panelGlobal" class="tab-panel active">
       <div class="autocomplete-container">
-        <input type="text" id="artistName" placeholder="Search ANY artist worldwide..." oninput="searchGlobalArtists(this.value)" autocomplete="off" />
+        <input type="text" id="artistName" placeholder="Search music artist (e.g., Alec Benjamin)..." oninput="searchGlobalArtists(this.value)" autocomplete="off" />
         <div id="artistSuggestions" class="suggestions-list"></div>
       </div>
       <button onclick="addGlobalArtistSeed()">Seed Artist into Rotation</button>
@@ -135,11 +135,11 @@
       <input type="text" id="customTitle" placeholder="Song / Video Title" />
       <input type="text" id="customArtist" placeholder="Artist / Creator Name" />
       <input type="file" id="customLocalFile" accept="audio/*,video/*" style="padding: 8px;" />
-      <input type="url" id="customMediaUrl" placeholder="Or paste media URL (.mp3 / .mp4)" />
+      <input type="url" id="customMediaUrl" placeholder="Or paste media/video URL (.mp3 / .mp4)" />
       <textarea id="customLyrics" placeholder="Song lyrics..."></textarea>
       <textarea id="customBio" placeholder="Artist history / bio..."></textarea>
-      <input type="text" id="customTickets" placeholder="Event Info / Ticket Title (e.g., Live in NYC - $35)" />
-      <input type="text" id="customMerch" placeholder="Merch Item Title (e.g., Official Tour Hoodie - $55)" />
+      <input type="text" id="customTickets" placeholder="Event Info / Ticket Title (e.g., Live Tour Pass - $35)" />
+      <input type="text" id="customMerch" placeholder="Merch Item Title (e.g., Signature Hoodie - $50)" />
 
       <div class="checkbox-group">
         <strong style="color: var(--text); font-size: 0.82rem;">Mandatory AI Disclosure:</strong>
@@ -148,13 +148,13 @@
         <label><input type="checkbox" id="aiArtwork" /> AI Video / Art</label>
       </div>
 
-      <button onclick="addCustomCreation()">Add Track & In-App Store Items</button>
+      <button onclick="addCustomCreation()">Add Track & Store Items</button>
     </div>
 
     <div id="trackToast" class="toast">Updated successfully!</div>
   </div>
 
-  <!-- 3. Live Stations & Artist Seed Editor -->
+  <!-- 3. Live Stations & Seed Management -->
   <div class="card">
     <h2>3. Live Stations & Seed Management</h2>
     <div id="stationsList">
@@ -162,7 +162,7 @@
     </div>
   </div>
 
-  <!-- IN-APP COMMERCE MODAL (Tickets & Merch Checkout) -->
+  <!-- IN-APP COMMERCE MODAL -->
   <div id="commerceModal" class="modal-overlay">
     <div class="modal-card">
       <h3 id="modalTitle" style="margin-top: 0; color: #b388ff;">In-App Checkout</h3>
@@ -234,6 +234,7 @@
       closeModal();
     }
 
+    // STRICT MUSIC SEARCH (Filters out audiobooks, podcasts, audiobooks)
     function searchGlobalArtists(query) {
       const box = document.getElementById('artistSuggestions');
       if (!query || query.trim().length < 2) { box.style.display = 'none'; return; }
@@ -241,16 +242,17 @@
       clearTimeout(searchTimeout);
       searchTimeout = setTimeout(async () => {
         try {
-          const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=8`);
+          const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=musicTrack&limit=10`);
           const data = await res.json();
           if (!data.results || data.results.length === 0) { box.style.display = 'none'; return; }
+          
           searchCache = data.results;
           box.innerHTML = data.results.map((item, idx) => `
             <div class="suggestion-item" onclick="selectArtist(${idx})">
               <img src="${item.artworkUrl100 || ''}" alt="" />
               <div>
                 <div style="font-weight: 600;">${item.artistName}</div>
-                <div style="font-size: 0.75rem; color: var(--muted);">${item.trackName}</div>
+                <div style="font-size: 0.75rem; color: var(--muted);">${item.trackName} (${item.primaryGenreName})</div>
               </div>
             </div>
           `).join('');
@@ -301,18 +303,11 @@
       const station = stations.find(s => s.id == stationId);
       if (station.artists.includes(artist)) return alert('Artist already seeded in this station.');
 
-      let artistBio = `${artist} — Seeded artist on VibeCast.`;
-      try {
-        const wikiRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(artist)}`);
-        if (wikiRes.ok) {
-          const wikiData = await wikiRes.json();
-          if (wikiData.extract) artistBio = wikiData.extract;
-        }
-      } catch (e) {}
+      let artistBio = `${artist} is an active recording artist featured on VibeCast Radio. Known for dynamic performances and chart hits across global music streaming charts.`;
 
       let fetchedTracks = [];
       try {
-        const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(artist)}&limit=5`);
+        const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(artist)}&entity=musicTrack&limit=6`);
         const data = await res.json();
         if (data.results) {
           fetchedTracks = data.results.filter(r => r.previewUrl).map(t => ({
@@ -322,16 +317,16 @@
             mediaUrl: t.previewUrl,
             isVideo: false,
             artwork: t.artworkUrl100 ? t.artworkUrl100.replace('100x100', '400x400') : '',
-            lyrics: `🎵 "${t.trackName}" by ${artist}\nAlbum: ${t.collectionName || 'Single'}`,
+            lyrics: `🎵 "${t.trackName}" by ${artist}\nAlbum: ${t.collectionName || 'Single'}\nGenre: ${t.primaryGenreName}\n\n(Official preview streaming live via VibeCast Music Network)`,
             bio: artistBio,
-            ticketsInfo: `${artist} Live Tour 2026 - General Admission ($45.00)`,
-            merchInfo: `${artist} Signature Tour T-Shirt ($35.00)`,
+            ticketsInfo: `${artist} Live 2026 Tour - General Admission ($45.00)`,
+            merchInfo: `${artist} Official Tour Hoodie ($50.00)`,
             disclosure: { audio: false, lyrics: false, artwork: false }
           }));
         }
       } catch (e) { console.error(e); }
 
-      if (fetchedTracks.length === 0) return alert('No tracks found.');
+      if (fetchedTracks.length === 0) return alert('No music tracks found for that artist.');
 
       station.artists.push(artist);
       station.tracks.push(...fetchedTracks);
@@ -355,7 +350,7 @@
       if (!stationId || !title) return alert('Select a station and enter a title.');
 
       let mediaUrl = urlInput;
-      let isVideo = urlInput.toLowerCase().endsWith('.mp4');
+      let isVideo = urlInput.toLowerCase().endsWith('.mp4') || urlInput.toLowerCase().endsWith('.webm');
 
       if (fileInput.files && fileInput.files[0]) {
         const file = fileInput.files[0];
@@ -374,7 +369,7 @@
         isVideo,
         artwork: '',
         lyrics: lyrics || 'Original custom track.',
-        bio: bio || `Created by ${artist}.`,
+        bio: bio || `Created by ${artist} on VibeCast Studio.`,
         ticketsInfo,
         merchInfo,
         disclosure: {
@@ -399,18 +394,13 @@
       showToast('trackToast', `"${title}" added successfully!`);
     }
 
-    // Artist Seed Removal / Editing
     function removeArtist(stationId, artistName) {
       const station = stations.find(s => s.id == stationId);
       if (!station) return;
-
-      // Remove artist from list
       station.artists = station.artists.filter(a => a !== artistName);
-      // Remove their associated tracks from the rotation pool
       station.tracks = station.tracks.filter(t => t.artist !== artistName);
-
       updateUI();
-      showToast('stationToast', `Removed ${artistName} and their tracks.`);
+      showToast('stationToast', `Removed ${artistName}.`);
     }
 
     function playStation(stationId) {
@@ -454,6 +444,7 @@
         videoEl.style.display = 'none';
         audioEl.style.display = 'block';
         if (track.artwork) {
+          artRefSrc = track.artwork;
           artEl.src = track.artwork;
           artEl.style.display = 'block';
         } else {
@@ -483,12 +474,12 @@
           <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
             <div>
               <strong>${s.name}</strong>
-              <div style="font-size: 0.8rem; color: var(--muted);">${s.genre} • ${s.tracks.length} track pool</div>
+              <div style="font-size: 0.80rem; color: var(--muted);">${s.genre} • ${s.tracks.length} track pool</div>
             </div>
             <button style="width: auto; padding: 6px 12px; margin: 0; font-size: 0.8rem;" onclick="playStation(${s.id})">▶ Tune In</button>
           </div>
           <div style="font-size: 0.8rem; color: #b388ff; border-top: 1px solid var(--border); padding-top: 8px;">
-            Seeded Artists (Tap to Remove):
+            Seeded Artists (Tap X to Remove):
             <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px;">
               ${s.artists.length > 0 ? s.artists.map(a => `<span style="background: var(--bg); border: 1px solid var(--border); padding: 4px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px;">${a} <button class="danger-btn" onclick="removeArtist(${s.id}, '${a}')">✕</button></span>`).join('') : '<span style="color: var(--muted);">None</span>'}
             </div>
