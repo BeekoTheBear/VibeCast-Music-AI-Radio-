@@ -1,9 +1,10 @@
 from flask import Flask, render_template, request, jsonify
 from datetime import datetime
+import os
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='templates')
 
-# In-memory store (Connects directly to Supabase PostgreSQL next)
+# In-memory store (Ready for Supabase PostgreSQL integration)
 users_db = {}
 
 @app.route('/')
@@ -24,6 +25,7 @@ def sync_user():
     user_id = data.get('id')
     if not user_id:
         return jsonify({"error": "User ID required"}), 400
+    
     users_db[user_id] = {
         **data,
         "last_synced": datetime.utcnow().isoformat()
@@ -31,4 +33,5 @@ def sync_user():
     return jsonify({"status": "synced", "user": users_db[user_id]}), 200
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
