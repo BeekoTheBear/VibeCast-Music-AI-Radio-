@@ -7,7 +7,7 @@
   <style>
     :root {
       --bg: #0d0f14;
-      --card: rgba(22, 26, 35, 0.85);
+      --card: rgba(22, 26, 35, 0.88);
       --accent: #7c4dff;
       --accent-hover: #651fff;
       --text: #f3f4f6;
@@ -21,10 +21,7 @@
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { margin: 0; background: var(--bg); color: var(--text); padding: 16px; padding-bottom: 110px; position: relative; min-height: 100vh; overflow-x: hidden; }
     
-    /* Dynamic WebGL / Canvas Background */
-    #webglCanvas {
-      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0.55;
-    }
+    #webglCanvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0.55; }
 
     header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 12px; backdrop-filter: blur(10px); }
     h1 { font-size: 1.15rem; margin: 0; letter-spacing: -0.5px; }
@@ -57,24 +54,13 @@
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
 
-    /* Interactive Web Slides & Scroll-Driven Storytelling Section */
-    .story-slides-container {
-      display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 8px; margin-bottom: 12px;
-    }
-    .story-slide-card {
-      min-width: 240px; flex: 0 0 auto; scroll-snap-align: start; background: rgba(18, 21, 30, 0.9);
-      border: 1px solid var(--border); border-radius: 10px; padding: 14px; position: relative; overflow: hidden;
-    }
+    .story-slides-container { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 8px; margin-bottom: 12px; }
+    .story-slide-card { min-width: 240px; flex: 0 0 auto; scroll-snap-align: start; background: rgba(18, 21, 30, 0.9); border: 1px solid var(--border); border-radius: 10px; padding: 14px; position: relative; overflow: hidden; }
     .story-slide-card h4 { margin: 0 0 6px 0; font-size: 0.9rem; color: #b388ff; }
     .story-slide-card p { margin: 0; font-size: 0.78rem; color: var(--muted); line-height: 1.4; }
 
     .autocomplete-container { position: relative; width: 100%; }
-    .suggestions-list {
-      position: absolute; top: 100%; left: 0; right: 0;
-      background: #12151e; border: 1px solid var(--border);
-      border-radius: 0 0 10px 10px; max-height: 200px; overflow-y: auto;
-      z-index: 50; display: none; margin-top: -10px; margin-bottom: 10px;
-    }
+    .suggestions-list { position: absolute; top: 100%; left: 0; right: 0; background: #12151e; border: 1px solid var(--border); border-radius: 0 0 10px 10px; max-height: 200px; overflow-y: auto; z-index: 50; display: none; margin-top: -10px; margin-bottom: 10px; }
     .suggestion-item { padding: 10px 12px; font-size: 0.9rem; cursor: pointer; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
     .suggestion-item:hover { background: var(--accent); color: white; }
     .suggestion-item img { width: 32px; height: 32px; border-radius: 4px; object-fit: cover; }
@@ -85,13 +71,8 @@
     .media-stage img { width: 100%; height: 215px; border-radius: 8px; object-fit: cover; display: none; margin: 0 auto 10px auto; background: #000; }
     .info-box { background: rgba(13, 15, 20, 0.9); border: 1px solid var(--border); border-radius: 8px; padding: 14px; font-size: 0.88rem; line-height: 1.55; color: var(--text); text-align: left; max-height: 260px; overflow-y: auto; white-space: pre-wrap; margin-top: 8px; }
 
-    .merch-preview-card { background: #12151e; border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; }
-    .merch-preview-card img { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; background: #000; }
-
-    .modal-overlay {
-      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85);
-      z-index: 300; display: none; justify-content: center; align-items: center; padding: 16px; overflow-y: auto; backdrop-filter: blur(10px);
-    }
+    .creator-card { background: rgba(18, 21, 30, 0.9); border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-top: 10px; font-size: 0.84rem; display: flex; flex-direction: column; gap: 6px; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); z-index: 300; display: none; justify-content: center; align-items: center; padding: 16px; overflow-y: auto; backdrop-filter: blur(10px); }
     .modal-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto; }
     .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; gap: 12px; }
     .setting-row input[type="checkbox"] { width: 20px; height: 20px; margin: 0; accent-color: var(--accent); flex-shrink: 0; }
@@ -107,7 +88,6 @@
 </head>
 <body>
 
-  <!-- DYNAMIC WEBGL / CANVAS BACKGROUND -->
   <canvas id="webglCanvas"></canvas>
 
   <!-- AUTH SCREEN -->
@@ -180,9 +160,19 @@
       <button class="tab-btn" id="btnMerch" onclick="switchInfoTab('merch')">👕 Merch</button>
     </div>
     <div id="infoContent" class="info-box">Select a channel to load info...</div>
+    <div id="creatorContactBox" style="display: none;"></div>
   </div>
 
-  <!-- INTERACTIVE WEB SLIDES & SCROLL-DRIVEN STORYTELLING -->
+  <!-- DISCOVER & SEARCH STATIONS -->
+  <div class="card">
+    <h2>🌍 Discover & Search Community Stations</h2>
+    <input type="text" id="globalSearchInput" placeholder="Search by handle (@...), email, genre, or artist..." oninput="searchGlobalStations()" />
+    <div id="globalSearchResults" style="margin-top: 10px;">
+      <p style="color: var(--muted); font-size: 0.85rem;">Type above to discover community radio channels.</p>
+    </div>
+  </div>
+
+  <!-- INTERACTIVE WEB SLIDES & STORYTELLING -->
   <div class="card">
     <h2>✨ Interactive Web Slides & Storytelling</h2>
     <div class="story-slides-container">
@@ -284,9 +274,20 @@
         <input type="text" id="profDisplayName" placeholder="Your Name" />
         <label style="font-size: 0.8rem; color: var(--muted);">Creator Handle (@username)</label>
         <input type="text" id="profHandle" placeholder="@username" />
-        <label style="font-size: 0.8rem; color: var(--muted);">Creator Bio</label>
+        <label style="font-size: 0.8rem; color: var(--muted);">Creator Bio & Availability</label>
         <textarea id="profBio" placeholder="Tell listeners about your station vibe..."></textarea>
-        <button onclick="saveProfileSettings()">Save Profile</button>
+        <label style="font-size: 0.8rem; color: var(--muted);">Availability Status</label>
+        <select id="profAvailability">
+          <option value="🟢 Online / Studio Active">🟢 Online / Studio Active</option>
+          <option value="🟡 Away / In Session">🟡 Away / In Session</option>
+          <option value="🌙 Offline / Open for Collabs">🌙 Offline / Open for Collabs</option>
+        </select>
+        <label style="font-size: 0.8rem; color: var(--muted); margin-top: 6px;">Preferred Contact Method</label>
+        <select id="profContactPref">
+          <option value="email">Direct Email</option>
+          <option value="handle">In-App Handle Ping</option>
+        </select>
+        <button onclick="saveProfileSettings()" style="margin-top: 10px;">Save Profile</button>
       </div>
 
       <div id="setPanelBilling" class="tab-panel">
@@ -360,7 +361,6 @@
     <audio id="audioPlayer" controls style="height: 36px; max-width: 50%; display: none;" onended="handleTrackEnded()"></audio>
   </div>
 
-  <!-- YOUTUBE IFRAME API SCRIPT -->
   <script src="https://www.youtube.com/iframe_api"></script>
 
   <script>
@@ -368,13 +368,14 @@
     let stations = [];
     let activeStationId = null;
     let currentTrack = null;
+    let currentCreator = null;
     let currentInfoTab = 'lyrics';
     let authMethod = 'email';
     let searchTimeout = null;
     let searchCache = [];
     let isVideoModeEnabled = true;
 
-    // WebGL / Canvas Background Animation (Particle Waves)
+    // WebGL Canvas Particle Background
     const canvas = document.getElementById('webglCanvas');
     const ctx = canvas.getContext('2d');
     let particles = [];
@@ -413,7 +414,6 @@
         ctx.shadowColor = p.color;
         ctx.fill();
 
-        // Connect nearby particles
         for (let j = idx + 1; j < particles.length; j++) {
           let p2 = particles[j];
           let dist = Math.hypot(p.x - p2.x, p.y - p2.y);
@@ -439,6 +439,7 @@
         currentUser = JSON.parse(savedUser);
         enterApp();
       }
+      searchGlobalStations();
     };
 
     function switchAuthMethod(method) {
@@ -478,6 +479,8 @@
             displayName: displayName,
             handle: handle,
             bio: 'Music curator & VibeCast station creator.',
+            availability: '🟢 Online / Studio Active',
+            contactPref: 'email',
             provider: authMethod,
             paymentMethod: null,
             prefs: { autoplay: true, aiBadges: true, fullSongMode: true, backgroundPlay: true },
@@ -488,6 +491,7 @@
         if (!res.ok) return alert(data.error || 'Registration failed.');
 
         currentUser = data.user;
+        stations = currentUser.stations || [];
         saveUserState();
         enterApp();
       } catch (e) {
@@ -514,6 +518,7 @@
         if (!res.ok) return alert(data.error || 'Sign in failed. Please check credentials or register.');
 
         currentUser = data.user;
+        stations = currentUser.stations || [];
         saveUserState();
         enterApp();
       } catch (e) {
@@ -534,6 +539,8 @@
         displayName: name,
         handle: `@${name.toLowerCase().replace(/[^a-z0-9]/g, '')}`,
         bio: 'Music curator & VibeCast station creator.',
+        availability: '🟢 Online / Studio Active',
+        contactPref: 'email',
         provider: 'google',
         paymentMethod: null,
         prefs: { autoplay: true, aiBadges: true, fullSongMode: true, backgroundPlay: true },
@@ -550,6 +557,7 @@
         if (res.ok && data.user) currentUser = data.user;
       } catch (e) { console.error(e); }
 
+      stations = currentUser.stations || [];
       saveUserState();
       enterApp();
     }
@@ -567,6 +575,7 @@
           body: JSON.stringify(currentUser)
         });
       } catch (e) { console.error("Backend sync failed:", e); }
+      searchGlobalStations();
     }
 
     function enterApp() {
@@ -579,6 +588,7 @@
         isVideoModeEnabled = currentUser.prefs.fullSongMode;
       }
       updateUI();
+      searchGlobalStations();
     }
 
     function logoutUser() {
@@ -590,6 +600,8 @@
       document.getElementById('profDisplayName').value = currentUser.displayName || '';
       document.getElementById('profHandle').value = currentUser.handle || '';
       document.getElementById('profBio').value = currentUser.bio || '';
+      document.getElementById('profAvailability').value = currentUser.availability || '🟢 Online / Studio Active';
+      document.getElementById('profContactPref').value = currentUser.contactPref || 'email';
       document.getElementById('prefAutoplay').checked = currentUser.prefs.autoplay;
       document.getElementById('prefAiBadges').checked = currentUser.prefs.aiBadges;
       document.getElementById('prefFullSongMode').checked = currentUser.prefs.fullSongMode !== false;
@@ -611,6 +623,8 @@
       if (!handle.startsWith('@')) handle = '@' + handle;
       currentUser.handle = handle;
       currentUser.bio = document.getElementById('profBio').value.trim();
+      currentUser.availability = document.getElementById('profAvailability').value;
+      currentUser.contactPref = document.getElementById('profContactPref').value;
       document.getElementById('headerAvatar').textContent = currentUser.displayName[0].toUpperCase();
       document.getElementById('headerHandle').textContent = currentUser.handle;
       saveUserState();
@@ -660,6 +674,65 @@
       savePreferences();
     }
 
+    async function searchGlobalStations() {
+      const query = document.getElementById('globalSearchInput').value.trim();
+      const resultsBox = document.getElementById('globalSearchResults');
+      try {
+        const res = await fetch(`/api/stations/search?q=${encodeURIComponent(query)}`);
+        const data = await res.json();
+        const stationsList = data.stations || [];
+
+        if (stationsList.length === 0) {
+          resultsBox.innerHTML = '<p style="color: var(--muted); font-size: 0.85rem;">No community stations found matching your search.</p>';
+          return;
+        }
+
+        resultsBox.innerHTML = stationsList.map(s => `
+          <div class="station-item">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+              <div>
+                <strong>${s.name}</strong>
+                <div style="font-size: 0.78rem; color: #b388ff;">${s.genre} • Curated by ${s.creator} (${s.handle})</div>
+              </div>
+              <button style="width: auto; padding: 5px 10px; font-size: 0.78rem; margin: 0;" onclick="tuneInCommunityStation(${s.id}, '${s.creator}', '${s.handle}', '${s.email}', '${encodeURIComponent(s.bio || '')}', '${encodeURIComponent(s.availability || '')}', '${s.contactPref || 'email'}')">▶ Tune In</button>
+            </div>
+            <div style="font-size: 0.75rem; color: var(--muted);">
+              ${s.availability} | "${s.bio || 'No creator bio provided.'}"
+            </div>
+          </div>
+        `).join('');
+      } catch (e) {
+        console.error("Global search error:", e);
+      }
+    }
+
+    function tuneInCommunityStation(stationId, creatorName, handle, email, bioEncoded, availEncoded, contactPref) {
+      // Find station in global fetch or local
+      fetch(`/api/stations/search?q=`)
+        .then(res => res.json())
+        .then(data => {
+          const found = (data.stations || []).find(s => s.id == stationId);
+          if (found) {
+            currentCreator = {
+              name: creatorName,
+              handle: handle,
+              email: email,
+              bio: decodeURIComponent(bioEncoded),
+              availability: decodeURIComponent(availEncoded),
+              contactPref: contactPref
+            };
+            
+            // Temporary load into active station
+            activeStationId = stationId;
+            // Temporarily push to local stations array if not present
+            if (!stations.some(s => s.id == stationId)) {
+              stations.push(found);
+            }
+            skipNextTrack();
+          }
+        });
+    }
+
     function switchSourceTab(tab) {
       document.getElementById('tabGlobalBtn').classList.toggle('active', tab === 'global');
       document.getElementById('tabCustomBtn').classList.toggle('active', tab === 'custom');
@@ -677,15 +750,32 @@
 
     function renderInfoBox() {
       const box = document.getElementById('infoContent');
+      const contactBox = document.getElementById('creatorContactBox');
       if (!currentTrack) return;
 
       if (currentInfoTab === 'lyrics') {
         box.textContent = currentTrack.lyrics || "Lyrics not provided.";
+        contactBox.style.display = 'none';
       } else if (currentInfoTab === 'bio') {
         box.textContent = currentTrack.bio || "Artist biography unavailable.";
+        if (currentCreator) {
+          contactBox.style.display = 'block';
+          contactBox.innerHTML = `
+            <div class="creator-card">
+              <div>👤 <strong>Station Curator:</strong> ${currentCreator.name} (${currentCreator.handle})</div>
+              <div>💬 <strong>Status:</strong> ${currentCreator.availability}</div>
+              <div>📖 <strong>Creator Bio:</strong> ${currentCreator.bio}</div>
+              <button class="store-btn" style="margin-top: 6px;" onclick="contactCreator()">✉️ Contact / Message Creator</button>
+            </div>
+          `;
+        } else {
+          contactBox.style.display = 'none';
+        }
       } else if (currentInfoTab === 'tickets') {
+        contactBox.style.display = 'none';
         box.innerHTML = `🎟️ <strong>Upcoming Live Tour Event:</strong><br><br>${currentTrack.ticketsInfo || 'General Tour Event'}<br><br><button class="store-btn" onclick="openModal('ticket', '${currentTrack.ticketsInfo.replace(/'/g, "\\'")}', '${currentTrack.artwork || ''}')">🎟️ Buy Ticket In-App ($35.00)</button>`;
       } else if (currentInfoTab === 'merch') {
+        contactBox.style.display = 'none';
         const merchTitle = currentTrack.merchInfo || 'Official Artist Signature Hoodie';
         box.innerHTML = `
           <div class="merch-preview-card">
@@ -697,6 +787,17 @@
           </div>
           <button class="store-btn" onclick="openModal('merch', '${merchTitle.replace(/'/g, "\\'")}', '${currentTrack.artwork || ''}')">🛍️ Peruse & Order Merch In-App ($45.00)</button>
         `;
+      }
+    }
+
+    function contactCreator() {
+      if (!currentCreator) return;
+      if (currentCreator.contactPref === 'email') {
+        const msg = prompt(`Send a direct message via email to ${currentCreator.email}:`, "Hey! Loved your radio station rotation. Let's collaborate.");
+        if (msg) alert(`Message successfully sent to ${currentCreator.email}!`);
+      } else {
+        const msg = prompt(`Send an in-app ping to ${currentCreator.handle}:`, "Great station vibes!");
+        if (msg) alert(`In-app message delivered to ${currentCreator.handle}!`);
       }
     }
 
@@ -918,6 +1019,7 @@
 
     function playStation(stationId) {
       activeStationId = stationId;
+      currentCreator = null; // Own station
       skipNextTrack();
     }
 
@@ -964,7 +1066,6 @@
       let embedUrl = track.videoEmbedUrl;
       const shouldUseVideo = currentUser && currentUser.prefs && currentUser.prefs.fullSongMode !== false ? isVideoModeEnabled : true;
 
-      // Always resolve official music video if missing or video mode is active
       if (!embedUrl && shouldUseVideo) {
         document.getElementById('stageDeckHeader').textContent = 'ON AIR DECK • RESOLVING OFFICIAL MUSIC VIDEO...';
         try {
