@@ -24,7 +24,7 @@
     #webglCanvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0.55; }
 
     header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 12px; backdrop-filter: blur(10px); }
-    h1 { font-size: 1.15rem; margin: 0; letter-spacing: -0.5px; }
+    h1 { font-size: 1.15rem; margin: 0; letter-spacing: -0.5px; cursor: pointer; }
     .header-actions { display: flex; align-items: center; gap: 8px; }
     .profile-pill { background: var(--card); border: 1px solid var(--border); padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; color: var(--text); display: flex; align-items: center; gap: 6px; cursor: pointer; width: auto; margin: 0; backdrop-filter: blur(8px); }
     .avatar-dot { width: 20px; height: 20px; border-radius: 50%; background: var(--accent); display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.72rem; }
@@ -71,7 +71,7 @@
     .media-stage img { width: 100%; height: 215px; border-radius: 8px; object-fit: cover; display: none; margin: 0 auto 10px auto; background: #000; }
     .info-box { background: rgba(13, 15, 20, 0.9); border: 1px solid var(--border); border-radius: 8px; padding: 14px; font-size: 0.88rem; line-height: 1.55; color: var(--text); text-align: left; max-height: 260px; overflow-y: auto; white-space: pre-wrap; margin-top: 8px; }
 
-    .creator-card { background: rgba(18, 21, 30, 0.9); border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-top: 10px; font-size: 0.84rem; display: flex; flex-direction: column; gap: 6px; }
+    .creator-card { background: rgba(18, 21, 30, 0.9); border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-top: 10px; font-size: 0.84rem; display: flex; flex-direction: column; gap: 8px; }
     .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); z-index: 300; display: none; justify-content: center; align-items: center; padding: 16px; overflow-y: auto; backdrop-filter: blur(10px); }
     .modal-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto; }
     .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; gap: 12px; }
@@ -81,7 +81,7 @@
     .checkbox-group label { display: flex; align-items: center; gap: 10px; cursor: pointer; }
     .checkbox-group input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); }
     .station-item { padding: 12px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 10px; background: rgba(18, 21, 30, 0.6); }
-    .ai-badge { background: var(--badge); color: #b388ff; font-size: 0.7rem; padding: 2px 7px; border-radius: 6px; border: 1px solid #3f2e7a; font-weight: 600; display: inline-block; margin-right: 4px; margin-top: 4px; }
+    .ai-badge { background: var(--badge); color: #b388ff; font-size: 0.70rem; padding: 2px 7px; border-radius: 6px; border: 1px solid #3f2e7a; font-weight: 600; display: inline-block; margin-right: 4px; margin-top: 4px; }
     .player-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(18, 21, 30, 0.95); border-top: 1px solid var(--border); padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; z-index: 100; backdrop-filter: blur(12px); }
     .toast { font-size: 0.85rem; color: var(--success); margin-top: 4px; display: none; }
   </style>
@@ -123,7 +123,7 @@
 
   <!-- HEADER -->
   <header>
-    <h1>📻 VibeCast</h1>
+    <h1 onclick="returnToStudio()">📻 VibeCast</h1>
     <div class="header-actions">
       <button class="profile-pill" onclick="openSettings()">
         <span class="avatar-dot" id="headerAvatar">U</span>
@@ -133,125 +133,192 @@
     </div>
   </header>
 
-  <!-- NOW PLAYING STAGE -->
-  <div class="card" id="nowPlayingCard" style="display: none;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-      <span style="font-size: 0.78rem; color: #b388ff; font-weight: 600;" id="stageDeckHeader">ON AIR DECK • OFFICIAL MUSIC VIDEO</span>
-      <div style="display: flex; gap: 6px;">
-        <button class="secondary" style="width: auto; padding: 5px 10px; font-size: 0.78rem; margin: 0;" onclick="toggleFullVideoMode()">📺 Toggle Video</button>
-        <button class="secondary" style="width: auto; padding: 5px 10px; font-size: 0.78rem; margin: 0;" onclick="skipNextTrack()">⏭ Next</button>
+  <!-- CREATOR STUDIO VIEW (Default) -->
+  <div id="creatorStudioView">
+    <!-- NOW PLAYING STAGE -->
+    <div class="card" id="nowPlayingCard" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <span style="font-size: 0.78rem; color: #b388ff; font-weight: 600;" id="stageDeckHeader">ON AIR DECK • OFFICIAL MUSIC VIDEO</span>
+        <div style="display: flex; gap: 6px;">
+          <button class="secondary" style="width: auto; padding: 5px 10px; font-size: 0.78rem; margin: 0;" onclick="toggleFullVideoMode()">📺 Toggle Video</button>
+          <button class="secondary" style="width: auto; padding: 5px 10px; font-size: 0.78rem; margin: 0;" onclick="skipNextTrack()">⏭ Next</button>
+        </div>
+      </div>
+
+      <div class="media-stage">
+        <div class="stage-frame-wrap" id="ytStageWrap">
+          <div id="ytPlayerContainer"></div>
+        </div>
+        <img id="artStage" src="" alt="Artwork" />
+        <div id="stageTitle" style="font-weight: 700; font-size: 1rem; margin-top: 6px;">Track Title</div>
+        <div id="stageArtist" style="font-size: 0.85rem; color: var(--muted); margin-bottom: 6px;">Artist</div>
+        <div id="stageBadges"></div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" id="btnLyrics" onclick="switchInfoTab('lyrics')">📜 Live Lyrics</button>
+        <button class="tab-btn" id="btnBio" onclick="switchInfoTab('bio')">📖 Bio</button>
+        <button class="tab-btn" id="btnTickets" onclick="switchInfoTab('tickets')">🎟️ Tickets</button>
+        <button class="tab-btn" id="btnMerch" onclick="switchInfoTab('merch')">👕 Merch</button>
+      </div>
+      <div id="infoContent" class="info-box">Select a channel to load info...</div>
+      <div id="creatorContactBox" style="display: none;"></div>
+    </div>
+
+    <!-- DISCOVER & SEARCH STATIONS -->
+    <div class="card">
+      <h2>🌍 Discover & Search Community Stations</h2>
+      <input type="text" id="globalSearchInput" placeholder="Search by handle (@...), email, genre, or artist..." oninput="searchGlobalStations()" />
+      <div id="globalSearchResults" style="margin-top: 10px;">
+        <p style="color: var(--muted); font-size: 0.85rem;">Type above to discover community radio channels.</p>
       </div>
     </div>
 
-    <div class="media-stage">
-      <div class="stage-frame-wrap" id="ytStageWrap">
-        <div id="ytPlayerContainer"></div>
+    <!-- INTERACTIVE WEB SLIDES & STORYTELLING -->
+    <div class="card">
+      <h2>✨ Interactive Web Slides & Storytelling</h2>
+      <div class="story-slides-container">
+        <div class="story-slide-card">
+          <h4>🎧 01. AI Radio Evolution</h4>
+          <p>Curate custom multi-artist rotation streams powered by smart search engines and WebGL visuals.</p>
+        </div>
+        <div class="story-slide-card">
+          <h4>🎬 02. Official Video Stage</h4>
+          <p>Automatically filters out lyric videos in favor of pristine official music video streams.</p>
+        </div>
+        <div class="story-slide-card">
+          <h4>🎟️ 03. 1-Tap Commerce</h4>
+          <p>Tokenized wallet checkout for VIP tour passes and studio merchandise right inside VibeCast.</p>
+        </div>
+        <div class="story-slide-card">
+          <h4>🌌 04. 3D WebGL Worlds</h4>
+          <p>Immersive interactive background nodes and canvas audio-reactive particle waves.</p>
+        </div>
       </div>
-      <img id="artStage" src="" alt="Artwork" />
-      <div id="stageTitle" style="font-weight: 700; font-size: 1rem; margin-top: 6px;">Track Title</div>
-      <div id="stageArtist" style="font-size: 0.85rem; color: var(--muted); margin-bottom: 6px;">Artist</div>
-      <div id="stageBadges"></div>
     </div>
 
-    <div class="tabs">
-      <button class="tab-btn active" id="btnLyrics" onclick="switchInfoTab('lyrics')">📜 Live Lyrics</button>
-      <button class="tab-btn" id="btnBio" onclick="switchInfoTab('bio')">📖 Bio</button>
-      <button class="tab-btn" id="btnTickets" onclick="switchInfoTab('tickets')">🎟️ Tickets</button>
-      <button class="tab-btn" id="btnMerch" onclick="switchInfoTab('merch')">👕 Merch</button>
+    <!-- 1. CREATE CHANNEL -->
+    <div class="card">
+      <h2>1. Launch Radio Channel</h2>
+      <input type="text" id="stationName" placeholder="Channel Name (e.g., Synthwave & Indie Rotation)" />
+      <input type="text" id="stationGenre" placeholder="Vibe / Genre" />
+      <button onclick="createStation()">Save & Launch Channel</button>
+      <div id="stationToast" class="toast">Channel saved!</div>
     </div>
-    <div id="infoContent" class="info-box">Select a channel to load info...</div>
-    <div id="creatorContactBox" style="display: none;"></div>
+
+    <!-- 2. SEED CHANNEL -->
+    <div class="card">
+      <h2>2. Add & Edit Channel Seeds</h2>
+      <select id="stationSelect">
+        <option value="">-- Select Target Channel --</option>
+      </select>
+
+      <div class="tabs">
+        <button class="tab-btn active" id="tabGlobalBtn" onclick="switchSourceTab('global')">🌍 Global Music Search</button>
+        <button class="tab-btn" id="tabCustomBtn" onclick="switchSourceTab('custom')">📺 YouTube / Custom Media</button>
+      </div>
+
+      <div id="panelGlobal" class="tab-panel active">
+        <div class="autocomplete-container">
+          <input type="text" id="artistName" placeholder="Search exact music artist (e.g., Alec Benjamin)..." oninput="searchGlobalArtists(this.value)" autocomplete="off" />
+          <div id="artistSuggestions" class="suggestions-list"></div>
+        </div>
+        <button onclick="addGlobalArtistSeed()">Seed Full-Track Rotation</button>
+      </div>
+
+      <div id="panelCustom" class="tab-panel">
+        <input type="text" id="customTitle" placeholder="Song / Video Title" />
+        <input type="text" id="customArtist" placeholder="Artist / Creator Name" />
+        <input type="url" id="customVideoUrl" placeholder="Paste YouTube Video URL (youtu.be/... or youtube.com/watch?v=...)" />
+        <input type="url" id="customMediaUrl" placeholder="Or direct Audio URL (.mp3 / .wav)" />
+        <textarea id="customLyrics" placeholder="Song lyrics..."></textarea>
+        <textarea id="customBio" placeholder="Artist history / bio..."></textarea>
+        <input type="text" id="customTickets" placeholder="Event Info / Ticket Title (e.g., Live Tour Pass - $35)" />
+        <input type="text" id="customMerch" placeholder="Merch Item Title (e.g., Signature Hoodie - $50)" />
+
+        <div class="checkbox-group">
+          <strong style="color: var(--text); font-size: 0.82rem;">Mandatory AI Disclosure:</strong>
+          <label><input type="checkbox" id="aiAudio" checked /> AI Audio / Vocals</label>
+          <label><input type="checkbox" id="aiLyrics" /> AI Lyrics</label>
+          <label><input type="checkbox" id="aiArtwork" /> AI Video / Art</label>
+        </div>
+
+        <button onclick="addCustomCreation()">Add Track, Video & Store Items</button>
+      </div>
+
+      <div id="trackToast" class="toast">Updated successfully!</div>
+    </div>
+
+    <!-- 3. SAVED CHANNELS -->
+    <div class="card">
+      <h2>3. Your Saved Channels</h2>
+      <div id="stationsList">
+        <p style="color: var(--muted); font-size: 0.88rem;">No saved channels yet.</p>
+      </div>
+    </div>
   </div>
 
-  <!-- DISCOVER & SEARCH STATIONS -->
-  <div class="card">
-    <h2>🌍 Discover & Search Community Stations</h2>
-    <input type="text" id="globalSearchInput" placeholder="Search by handle (@...), email, genre, or artist..." oninput="searchGlobalStations()" />
-    <div id="globalSearchResults" style="margin-top: 10px;">
-      <p style="color: var(--muted); font-size: 0.85rem;">Type above to discover community radio channels.</p>
-    </div>
-  </div>
-
-  <!-- INTERACTIVE WEB SLIDES & STORYTELLING -->
-  <div class="card">
-    <h2>✨ Interactive Web Slides & Storytelling</h2>
-    <div class="story-slides-container">
-      <div class="story-slide-card">
-        <h4>🎧 01. AI Radio Evolution</h4>
-        <p>Curate custom multi-artist rotation streams powered by smart search engines and WebGL visuals.</p>
+  <!-- DEDICATED LISTENER VIEW (When tuning into someone else's station) -->
+  <div id="listenerView" style="display: none;">
+    <button class="secondary" style="margin-bottom: 14px;" onclick="returnToStudio()">← Back to Creator Studio</button>
+    
+    <div class="card">
+      <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 12px;">
+        <div id="listenerAvatarDot" class="avatar-dot" style="width: 48px; height: 48px; font-size: 1.2rem;">C</div>
+        <div>
+          <h2 id="listenerStationTitle" style="margin: 0; font-size: 1.2rem;">Station Title</h2>
+          <div id="listenerCreatorSub" style="font-size: 0.85rem; color: #b388ff;">Curated by Creator (@handle)</div>
+          <div id="listenerStatusBadge" style="font-size: 0.75rem; color: var(--success); margin-top: 2px;">🟢 Online</div>
+        </div>
       </div>
-      <div class="story-slide-card">
-        <h4>🎬 02. Official Video Stage</h4>
-        <p>Automatically filters out lyric videos in favor of pristine official music video streams.</p>
-      </div>
-      <div class="story-slide-card">
-        <h4>🎟️ 03. 1-Tap Commerce</h4>
-        <p>Tokenized wallet checkout for VIP tour passes and studio merchandise right inside VibeCast.</p>
-      </div>
-      <div class="story-slide-card">
-        <h4>🌌 04. 3D WebGL Worlds</h4>
-        <p>Immersive interactive background nodes and canvas audio-reactive particle waves.</p>
+      <div id="listenerBioBox" class="info-box" style="margin-bottom: 12px;">Creator bio goes here...</div>
+      
+      <div style="display: flex; gap: 8px;">
+        <button class="store-btn" onclick="requestCollab()">🤝 Request to Collaborate</button>
+        <button class="secondary" onclick="contactExternalCreator()">✉️ Contact Creator</button>
       </div>
     </div>
-  </div>
 
-  <!-- 1. CREATE CHANNEL -->
-  <div class="card">
-    <h2>1. Launch Radio Channel</h2>
-    <input type="text" id="stationName" placeholder="Channel Name (e.g., Synthwave & Indie Rotation)" />
-    <input type="text" id="stationGenre" placeholder="Vibe / Genre" />
-    <button onclick="createStation()">Save & Launch Channel</button>
-    <div id="stationToast" class="toast">Channel saved!</div>
-  </div>
-
-  <!-- 2. SEED CHANNEL -->
-  <div class="card">
-    <h2>2. Add & Edit Channel Seeds</h2>
-    <select id="stationSelect">
-      <option value="">-- Select Target Channel --</option>
-    </select>
-
-    <div class="tabs">
-      <button class="tab-btn active" id="tabGlobalBtn" onclick="switchSourceTab('global')">🌍 Global Music Search</button>
-      <button class="tab-btn" id="tabCustomBtn" onclick="switchSourceTab('custom')">📺 YouTube / Custom Media</button>
-    </div>
-
-    <div id="panelGlobal" class="tab-panel active">
-      <div class="autocomplete-container">
-        <input type="text" id="artistName" placeholder="Search exact music artist (e.g., Alec Benjamin)..." oninput="searchGlobalArtists(this.value)" autocomplete="off" />
-        <div id="artistSuggestions" class="suggestions-list"></div>
-      </div>
-      <button onclick="addGlobalArtistSeed()">Seed Full-Track Rotation</button>
-    </div>
-
-    <div id="panelCustom" class="tab-panel">
-      <input type="text" id="customTitle" placeholder="Song / Video Title" />
-      <input type="text" id="customArtist" placeholder="Artist / Creator Name" />
-      <input type="url" id="customVideoUrl" placeholder="Paste YouTube Video URL (youtu.be/... or youtube.com/watch?v=...)" />
-      <input type="url" id="customMediaUrl" placeholder="Or direct Audio URL (.mp3 / .wav)" />
-      <textarea id="customLyrics" placeholder="Song lyrics..."></textarea>
-      <textarea id="customBio" placeholder="Artist history / bio..."></textarea>
-      <input type="text" id="customTickets" placeholder="Event Info / Ticket Title (e.g., Live Tour Pass - $35)" />
-      <input type="text" id="customMerch" placeholder="Merch Item Title (e.g., Signature Hoodie - $50)" />
-
-      <div class="checkbox-group">
-        <strong style="color: var(--text); font-size: 0.82rem;">Mandatory AI Disclosure:</strong>
-        <label><input type="checkbox" id="aiAudio" checked /> AI Audio / Vocals</label>
-        <label><input type="checkbox" id="aiLyrics" /> AI Lyrics</label>
-        <label><input type="checkbox" id="aiArtwork" /> AI Video / Art</label>
+    <!-- LISTENER NOW PLAYING & TRACK REACTIONS -->
+    <div class="card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <span style="font-size: 0.78rem; color: #b388ff; font-weight: 600;">NOW LISTENING • COMMUNITY STATION</span>
+        <button class="secondary" style="width: auto; padding: 5px 10px; font-size: 0.78rem; margin: 0;" onclick="skipNextTrack()">⏭ Next Track</button>
       </div>
 
-      <button onclick="addCustomCreation()">Add Track, Video & Store Items</button>
+      <div class="media-stage">
+        <div class="stage-frame-wrap" id="listenerYtWrap">
+          <div id="listenerYtPlayerContainer"></div>
+        </div>
+        <img id="listenerArtStage" src="" alt="Artwork" style="display:none;" />
+        <div id="listenerStageTitle" style="font-weight: 700; font-size: 1rem; margin-top: 6px;">Track Title</div>
+        <div id="listenerStageArtist" style="font-size: 0.85rem; color: var(--muted); margin-bottom: 8px;">Artist</div>
+        
+        <div style="display: flex; justify-content: center; gap: 10px; margin-top: 10px;">
+          <button class="secondary" style="width: auto; padding: 6px 14px;" onclick="reactTrack('like')">👍 Like (<span id="likeCount">12</span>)</button>
+          <button class="secondary" style="width: auto; padding: 6px 14px;" onclick="reactTrack('dislike')">👎 Dislike (<span id="dislikeCount">1</span>)</button>
+        </div>
+      </div>
+
+      <div style="font-weight: 600; font-size: 0.9rem; margin: 14px 0 8px 0;">🎶 Station Track Line-Up Rotation</div>
+      <div id="listenerTrackLineup" style="background: rgba(13, 15, 20, 0.8); border: 1px solid var(--border); border-radius: 8px; padding: 10px; max-height: 180px; overflow-y: auto; font-size: 0.85rem;">
+        Loading lineup...
+      </div>
     </div>
 
-    <div id="trackToast" class="toast">Updated successfully!</div>
-  </div>
-
-  <!-- 3. SAVED CHANNELS -->
-  <div class="card">
-    <h2>3. Your Saved Channels</h2>
-    <div id="stationsList">
-      <p style="color: var(--muted); font-size: 0.88rem;">No saved channels yet.</p>
+    <!-- COMMENTS SECTION (If allowed) -->
+    <div class="card" id="listenerCommentsCard">
+      <h2>💬 Station Live Comments</h2>
+      <div id="commentsList" style="background: rgba(13, 15, 20, 0.8); border: 1px solid var(--border); border-radius: 8px; padding: 10px; max-height: 160px; overflow-y: auto; font-size: 0.84rem; margin-bottom: 10px;">
+        No comments yet. Be the first to chime in!
+      </div>
+      <div id="commentInputBox">
+        <input type="text" id="newCommentText" placeholder="Write a comment..." />
+        <button onclick="postComment()">Post Comment</button>
+      </div>
+      <div id="commentsDisabledMsg" style="color: var(--muted); font-size: 0.82rem; display: none;">
+        🔒 Comments have been disabled by the station creator.
+      </div>
     </div>
   </div>
 
@@ -287,7 +354,12 @@
           <option value="email">Direct Email</option>
           <option value="handle">In-App Handle Ping</option>
         </select>
-        <button onclick="saveProfileSettings()" style="margin-top: 10px;">Save Profile</button>
+        <div style="margin-top: 10px;">
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; cursor: pointer;">
+            <input type="checkbox" id="profAllowComments" checked style="width: 18px; height: 18px; margin:0;" /> Allow listeners to comment on your station
+          </label>
+        </div>
+        <button onclick="saveProfileSettings()" style="margin-top: 12px;">Save Profile</button>
       </div>
 
       <div id="setPanelBilling" class="tab-panel">
@@ -374,6 +446,9 @@
     let searchTimeout = null;
     let searchCache = [];
     let isVideoModeEnabled = true;
+    let viewMode = 'studio'; // 'studio' or 'listener'
+    let likes = 12;
+    let dislikes = 1;
 
     // WebGL Canvas Particle Background
     const canvas = document.getElementById('webglCanvas');
@@ -481,6 +556,7 @@
             bio: 'Music curator & VibeCast station creator.',
             availability: '🟢 Online / Studio Active',
             contactPref: 'email',
+            allowComments: true,
             provider: authMethod,
             paymentMethod: null,
             prefs: { autoplay: true, aiBadges: true, fullSongMode: true, backgroundPlay: true },
@@ -541,6 +617,7 @@
         bio: 'Music curator & VibeCast station creator.',
         availability: '🟢 Online / Studio Active',
         contactPref: 'email',
+        allowComments: true,
         provider: 'google',
         paymentMethod: null,
         prefs: { autoplay: true, aiBadges: true, fullSongMode: true, backgroundPlay: true },
@@ -602,6 +679,7 @@
       document.getElementById('profBio').value = currentUser.bio || '';
       document.getElementById('profAvailability').value = currentUser.availability || '🟢 Online / Studio Active';
       document.getElementById('profContactPref').value = currentUser.contactPref || 'email';
+      document.getElementById('profAllowComments').checked = currentUser.allowComments !== false;
       document.getElementById('prefAutoplay').checked = currentUser.prefs.autoplay;
       document.getElementById('prefAiBadges').checked = currentUser.prefs.aiBadges;
       document.getElementById('prefFullSongMode').checked = currentUser.prefs.fullSongMode !== false;
@@ -625,6 +703,7 @@
       currentUser.bio = document.getElementById('profBio').value.trim();
       currentUser.availability = document.getElementById('profAvailability').value;
       currentUser.contactPref = document.getElementById('profContactPref').value;
+      currentUser.allowComments = document.getElementById('profAllowComments').checked;
       document.getElementById('headerAvatar').textContent = currentUser.displayName[0].toUpperCase();
       document.getElementById('headerHandle').textContent = currentUser.handle;
       saveUserState();
@@ -694,7 +773,7 @@
                 <strong>${s.name}</strong>
                 <div style="font-size: 0.78rem; color: #b388ff;">${s.genre} • Curated by ${s.creator} (${s.handle})</div>
               </div>
-              <button style="width: auto; padding: 5px 10px; font-size: 0.78rem; margin: 0;" onclick="tuneInCommunityStation(${s.id}, '${s.creator}', '${s.handle}', '${s.email}', '${encodeURIComponent(s.bio || '')}', '${encodeURIComponent(s.availability || '')}', '${s.contactPref || 'email'}')">▶ Tune In</button>
+              <button style="width: auto; padding: 5px 10px; font-size: 0.78rem; margin: 0;" onclick="tuneInCommunityStation(${s.id}, '${s.creator}', '${s.handle}', '${s.email}', '${encodeURIComponent(s.bio || '')}', '${encodeURIComponent(s.availability || '')}', '${s.contactPref || 'email'}', ${s.allowComments !== false}, '${s.name}')">▶ Tune In</button>
             </div>
             <div style="font-size: 0.75rem; color: var(--muted);">
               ${s.availability} | "${s.bio || 'No creator bio provided.'}"
@@ -706,31 +785,133 @@
       }
     }
 
-    function tuneInCommunityStation(stationId, creatorName, handle, email, bioEncoded, availEncoded, contactPref) {
-      // Find station in global fetch or local
-      fetch(`/api/stations/search?q=`)
-        .then(res => res.json())
-        .then(data => {
-          const found = (data.stations || []).find(s => s.id == stationId);
-          if (found) {
-            currentCreator = {
-              name: creatorName,
-              handle: handle,
-              email: email,
-              bio: decodeURIComponent(bioEncoded),
-              availability: decodeURIComponent(availEncoded),
-              contactPref: contactPref
-            };
-            
-            // Temporary load into active station
-            activeStationId = stationId;
-            // Temporarily push to local stations array if not present
-            if (!stations.some(s => s.id == stationId)) {
-              stations.push(found);
-            }
-            skipNextTrack();
-          }
+    async function tuneInCommunityStation(stationId, creatorName, handle, email, bioEncoded, availEncoded, contactPref, allowComments, stationName) {
+      const res = await fetch(`/api/stations/search?q=`);
+      const data = await res.json();
+      const found = (data.stations || []).find(s => s.id == stationId);
+      if (!found) return alert('Station not found.');
+
+      currentCreator = {
+        name: creatorName,
+        handle: handle,
+        email: email,
+        bio: decodeURIComponent(bioEncoded),
+        availability: decodeURIComponent(availEncoded),
+        contactPref: contactPref,
+        allowComments: allowComments,
+        stationName: stationName
+      };
+
+      activeStationId = stationId;
+      if (!stations.some(s => s.id == stationId)) {
+        stations.push(found);
+      }
+
+      // Switch to Listener Mode View
+      viewMode = 'listener';
+      document.getElementById('creatorStudioView').style.display = 'none';
+      document.getElementById('listenerView').style.display = 'block';
+
+      // Populate Listener View Header
+      document.getElementById('listenerAvatarDot5').textContent = creatorName[0].toUpperCase();
+      document.getElementById('listenerAvatarDot').textContent = creatorName[0].toUpperCase();
+      document.getElementById('listenerStationTitle').textContent = stationName;
+      document.getElementById('listenerCreatorSub').textContent = `Curated by ${creatorName} (${handle})`;
+      document.getElementById('listenerStatusBadge').textContent = currentCreator.availability;
+      document.getElementById('listenerBioBox').textContent = currentCreator.bio || 'No creator bio provided.';
+
+      // Populate Track Lineup
+      const lineupBox = document.getElementById('listenerTrackLineup');
+      lineupBox.innerHTML = found.tracks.map((t, idx) => `
+        <div style="padding: 6px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between;">
+          <div><strong>#${idx + 1}</strong> ${t.title} — <span style="color: var(--muted);">${t.artist}</span></div>
+        </div>
+      `).join('') || 'No tracks in rotation.';
+
+      // Comments setup
+      if (allowComments) {
+        document.getElementById('commentInputBox').style.display = 'block';
+        document.getElementById('commentsDisabledMsg').style.display = 'none';
+        loadComments(stationId);
+      } else {
+        document.getElementById('commentInputBox').style.display = 'none';
+        document.getElementById('commentsDisabledMsg').style.display = 'block';
+        document.getElementById('commentsList').innerHTML = '<p style="color: var(--muted);">Comments disabled by creator.</p>';
+      }
+
+      skipNextTrack();
+    }
+
+    function returnToStudio() {
+      viewMode = 'studio';
+      document.getElementById('listenerView').style.display = 'none';
+      document.getElementById('creatorStudioView').style.display = 'block';
+      if (currentTrack) {
+        document.getElementById('nowPlayingCard').style.display = 'block';
+      }
+    }
+
+    async function loadComments(stationId) {
+      try {
+        const res = await fetch(`/api/station/comments?stationId=${stationId}`);
+        const data = await res.json();
+        const list = document.getElementById('commentsList');
+        const comments = data.comments || [];
+        if (comments.length === 0) {
+          list.innerHTML = '<p style="color: var(--muted);">No comments yet. Be the first to chime in!</p>';
+          return;
+        }
+        list.innerHTML = comments.map(c => `
+          <div style="margin-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px;">
+            <strong style="color: #b388ff;">${c.author}</strong> <span style="font-size: 0.72rem; color: var(--muted);">${c.timestamp}</span>
+            <div>${c.text}</div>
+          </div>
+        `).join('');
+      } catch (e) { console.error(e); }
+    }
+
+    async function postComment() {
+      const text = document.getElementById('newCommentText').value.trim();
+      if (!text || !activeStationId) return;
+      const author = currentUser ? currentUser.displayName : 'Listener';
+      try {
+        const res = await fetch('/api/station/comments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ stationId: activeStationId, author, text })
         });
+        if (res.ok) {
+          document.getElementById('newCommentText').value = '';
+          loadComments(activeStationId);
+        }
+      } catch (e) { console.error(e); }
+    }
+
+    function reactTrack(type) {
+      if (type === 'like') {
+        likes++;
+        document.getElementById('likeCount').textContent = likes;
+      } else {
+        dislikes++;
+        document.getElementById('dislikeCount').textContent = dislikes;
+      }
+    }
+
+    function requestCollab() {
+      if (!currentCreator) return;
+      const msg = prompt(`Send collaboration request to ${currentCreator.name} (${currentCreator.handle}):`, "Hey! I'd love to collaborate on a radio station rotation.");
+      if (msg) alert(`Collaboration request successfully sent to ${currentCreator.name}!`);
+    }
+
+    function contactExternalCreator() {
+      if (!currentCreator) return;
+      if (currentCreator.contactPref === 'email') {
+        const msg = prompt(`Send email to ${currentCreator.email}:`, "Great station vibes!");
+        if (msg) alert(`Email sent to ${currentCreator.email}!`);
+      } else {
+        const msg = prompt(`Send in-app ping to ${currentCreator.handle}:`, "Hello!");
+        if (msg) alert(`Ping delivered to ${currentCreator.handle}!`);
+      }
     }
 
     function switchSourceTab(tab) {
@@ -750,32 +931,15 @@
 
     function renderInfoBox() {
       const box = document.getElementById('infoContent');
-      const contactBox = document.getElementById('creatorContactBox');
       if (!currentTrack) return;
 
       if (currentInfoTab === 'lyrics') {
         box.textContent = currentTrack.lyrics || "Lyrics not provided.";
-        contactBox.style.display = 'none';
       } else if (currentInfoTab === 'bio') {
         box.textContent = currentTrack.bio || "Artist biography unavailable.";
-        if (currentCreator) {
-          contactBox.style.display = 'block';
-          contactBox.innerHTML = `
-            <div class="creator-card">
-              <div>👤 <strong>Station Curator:</strong> ${currentCreator.name} (${currentCreator.handle})</div>
-              <div>💬 <strong>Status:</strong> ${currentCreator.availability}</div>
-              <div>📖 <strong>Creator Bio:</strong> ${currentCreator.bio}</div>
-              <button class="store-btn" style="margin-top: 6px;" onclick="contactCreator()">✉️ Contact / Message Creator</button>
-            </div>
-          `;
-        } else {
-          contactBox.style.display = 'none';
-        }
       } else if (currentInfoTab === 'tickets') {
-        contactBox.style.display = 'none';
         box.innerHTML = `🎟️ <strong>Upcoming Live Tour Event:</strong><br><br>${currentTrack.ticketsInfo || 'General Tour Event'}<br><br><button class="store-btn" onclick="openModal('ticket', '${currentTrack.ticketsInfo.replace(/'/g, "\\'")}', '${currentTrack.artwork || ''}')">🎟️ Buy Ticket In-App ($35.00)</button>`;
       } else if (currentInfoTab === 'merch') {
-        contactBox.style.display = 'none';
         const merchTitle = currentTrack.merchInfo || 'Official Artist Signature Hoodie';
         box.innerHTML = `
           <div class="merch-preview-card">
@@ -787,17 +951,6 @@
           </div>
           <button class="store-btn" onclick="openModal('merch', '${merchTitle.replace(/'/g, "\\'")}', '${currentTrack.artwork || ''}')">🛍️ Peruse & Order Merch In-App ($45.00)</button>
         `;
-      }
-    }
-
-    function contactCreator() {
-      if (!currentCreator) return;
-      if (currentCreator.contactPref === 'email') {
-        const msg = prompt(`Send a direct message via email to ${currentCreator.email}:`, "Hey! Loved your radio station rotation. Let's collaborate.");
-        if (msg) alert(`Message successfully sent to ${currentCreator.email}!`);
-      } else {
-        const msg = prompt(`Send an in-app ping to ${currentCreator.handle}:`, "Great station vibes!");
-        if (msg) alert(`In-app message delivered to ${currentCreator.handle}!`);
       }
     }
 
@@ -1019,7 +1172,10 @@
 
     function playStation(stationId) {
       activeStationId = stationId;
-      currentCreator = null; // Own station
+      currentCreator = null;
+      viewMode = 'studio';
+      document.getElementById('listenerView').style.display = 'none';
+      document.getElementById('creatorStudioView').style.display = 'block';
       skipNextTrack();
     }
 
@@ -1039,23 +1195,31 @@
 
     async function playTrackOnStage(track) {
       const station = stations.find(s => s.id == activeStationId);
-      document.getElementById('nowPlayingCard').style.display = 'block';
-      document.getElementById('stageTitle').textContent = track.title;
-      document.getElementById('stageArtist').textContent = `${track.artist} • ${station ? station.name : 'VibeCast Radio'}`;
-      document.getElementById('nowPlayingTitle').textContent = track.title;
-      document.getElementById('nowPlayingSub').textContent = track.artist;
+      
+      if (viewMode === 'studio') {
+        document.getElementById('nowPlayingCard').style.display = 'block';
+        document.getElementById('stageTitle').textContent = track.title;
+        document.getElementById('stageArtist').textContent = `${track.artist} • ${station ? station.name : 'VibeCast Radio'}`;
+        document.getElementById('nowPlayingTitle').textContent = track.title;
+        document.getElementById('nowPlayingSub').textContent = track.artist;
 
-      let badges = '';
-      if (currentUser && currentUser.prefs && currentUser.prefs.aiBadges) {
-        if (track.disclosure && track.disclosure.audio) badges += '<span class="ai-badge">AI Audio</span>';
-        if (track.disclosure && track.disclosure.lyrics) badges += '<span class="ai-badge">AI Lyrics</span>';
-        if (track.disclosure && track.disclosure.artwork) badges += '<span class="ai-badge">AI Video/Art</span>';
-        if (!badges) badges = '<span class="ai-badge" style="color:#10b981; border-color:#10b981;">Official Video Stream</span>';
+        let badges = '';
+        if (currentUser && currentUser.prefs && currentUser.prefs.aiBadges) {
+          if (track.disclosure && track.disclosure.audio) badges += '<span class="ai-badge">AI Audio</span>';
+          if (track.disclosure && track.disclosure.lyrics) badges += '<span class="ai-badge">AI Lyrics</span>';
+          if (track.disclosure && track.disclosure.artwork) badges += '<span class="ai-badge">AI Video/Art</span>';
+          if (!badges) badges = '<span class="ai-badge" style="color:#10b981; border-color:#10b981;">Official Video Stream</span>';
+        }
+        document.getElementById('stageBadges').innerHTML = badges;
+      } else {
+        document.getElementById('listenerStageTitle').textContent = track.title;
+        document.getElementById('listenerStageArtist').textContent = `${track.artist} • ${station ? station.name : 'VibeCast Radio'}`;
+        document.getElementById('nowPlayingTitle').textContent = track.title;
+        document.getElementById('nowPlayingSub').textContent = track.artist;
       }
-      document.getElementById('stageBadges').innerHTML = badges;
 
-      const ytWrap = document.getElementById('ytStageWrap');
-      const artEl = document.getElementById('artStage');
+      const ytWrap = viewMode === 'studio' ? document.getElementById('ytStageWrap') : document.getElementById('listenerYtWrap');
+      const artEl = viewMode === 'studio' ? document.getElementById('artStage') : document.getElementById('listenerArtStage');
       const audioEl = document.getElementById('audioPlayer');
 
       ytWrap.style.display = 'none';
@@ -1067,7 +1231,6 @@
       const shouldUseVideo = currentUser && currentUser.prefs && currentUser.prefs.fullSongMode !== false ? isVideoModeEnabled : true;
 
       if (!embedUrl && shouldUseVideo) {
-        document.getElementById('stageDeckHeader').textContent = 'ON AIR DECK • RESOLVING OFFICIAL MUSIC VIDEO...';
         try {
           const searchQuery = `${track.artist} ${track.title}`;
           const res = await fetch(`/api/resolve-video?q=${encodeURIComponent(searchQuery)}`);
@@ -1082,12 +1245,12 @@
         } catch (e) { console.error("Official video resolution error:", e); }
       }
 
+      const targetContainer = viewMode === 'studio' ? document.getElementById('ytPlayerContainer') : document.getElementById('listenerYtPlayerContainer');
+
       if (embedUrl && shouldUseVideo) {
         ytWrap.style.display = 'block';
-        document.getElementById('stageDeckHeader').textContent = 'ON AIR DECK • OFFICIAL MUSIC VIDEO STREAM';
-        document.getElementById('ytPlayerContainer').innerHTML = `<iframe id="ytIframe" src="${embedUrl}" style="width:100%;height:100%;border:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+        targetContainer.innerHTML = `<iframe src="${embedUrl}" style="width:100%;height:100%;border:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
       } else {
-        document.getElementById('stageDeckHeader').textContent = 'ON AIR DECK • AUDIO PREVIEW FALLBACK';
         if (track.artwork) {
           artEl.src = track.artwork;
           artEl.style.display = 'block';
@@ -1097,7 +1260,7 @@
         audioEl.play().catch(err => console.log("Audio autoplay prevented", err));
       }
 
-      renderInfoBox();
+      if (viewMode === 'studio') renderInfoBox();
     }
 
     function updateUI() {
