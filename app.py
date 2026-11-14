@@ -60,7 +60,6 @@ def login_user():
         
     user = users_db.get(identifier)
     if not user:
-        # Check alternative lookups (handle or phone)
         for u_id, u_data in users_db.items():
             if u_id == identifier or u_data.get('handle', '').lower() == identifier:
                 user = u_data
@@ -103,7 +102,9 @@ def resolve_video():
     if not query:
         return jsonify({"error": "Missing query"}), 400
     try:
-        search_url = f"https://www.youtube.com/results?search_query={urllib.parse.quote(query)}"
+        # Enforce official music video search & exclude lyric/audio-only results
+        refined_query = f"{query} official music video -lyric -lyrics -visualizer"
+        search_url = f"https://www.youtube.com/results?search_query={urllib.parse.quote(refined_query)}"
         req = urllib.request.Request(
             search_url,
             headers={
