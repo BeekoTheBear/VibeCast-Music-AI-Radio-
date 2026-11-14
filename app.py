@@ -7,7 +7,7 @@ import os
 
 app = Flask(__name__, template_folder='templates')
 
-# In-memory store (Ready for Supabase PostgreSQL integration)
+# Server-side persistent user store across sessions
 users_db = {}
 
 @app.route('/')
@@ -39,7 +39,9 @@ def register_user():
         "password": password,
         "displayName": data.get('displayName', identifier.split('@')[0]),
         "handle": data.get('handle', f"@{identifier.split('@')[0].replace(' ', '')}"),
-        "bio": data.get('bio', 'Music curator & VibeCast station creator.'),
+        "bio": data.get('bio', 'Music curator & VibeCast station creator. Available for collabs and live remote sessions.'),
+        "availability": data.get('availability', '🟢 Online / Studio Active'),
+        "contactPref": data.get('contactPref', 'email'),
         "provider": data.get('provider', 'credentials'),
         "paymentMethod": data.get('paymentMethod'),
         "prefs": data.get('prefs', {"autoplay": True, "aiBadges": True, "fullSongMode": True, "backgroundPlay": True}),
@@ -96,13 +98,52 @@ def sync_user():
         }
     return jsonify({"status": "synced", "user": users_db[user_id]}), 200
 
+@app.route('/api/stations/search', methods=['GET'])
+def search_stations():
+    query = request.args.get('q', '').strip().lower()
+    results = []
+    
+    for u_id, user in users_db.items():
+        creator_name = user.get('displayName', 'Creator')
+        handle = user.get('handle', '@creator')
+        email = user.get('id', '')
+        bio = user.get('bio', '')
+        availability = user.get('availability', '🟢 Online')
+        contact_pref = user.get('contactPref', 'email')
+        
+        for station in user.get('stations', []):
+            station_name = station.get('name', '').lower()
+            genre = station.get('genre', '').lower()
+            artists = [a.lower() for a in station.get('artists', [])]
+            
+            match = (
+                not query or 
+                query in station_name or 
+                query in genre or 
+                any(query in a for a in artists) or 
+                query in handle.lower() or 
+                query in email.lower()
+            )
+            
+            if match:
+                results.append({
+                    **station,
+                    "creator": creator_name,
+                    "handle": handle,
+                    "email": email,
+                    "bio": bio,
+                    "availability": availability,
+                    "contactPref": contact_pref
+                })
+                
+    return jsonify({"stations": results}), 200
+
 @app.route('/api/resolve-video', methods=['GET'])
 def resolve_video():
     query = request.args.get('q', '').strip()
     if not query:
         return jsonify({"error": "Missing query"}), 400
     try:
-        # Enforce official music video search & exclude lyric/audio-only results
         refined_query = f"{query} official music video -lyric -lyrics -visualizer"
         search_url = f"https://www.youtube.com/results?search_query={urllib.parse.quote(refined_query)}"
         req = urllib.request.Request(
