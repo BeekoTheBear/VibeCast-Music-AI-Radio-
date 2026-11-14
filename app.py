@@ -22,6 +22,81 @@ def health():
         "auth_providers": ["google", "email", "username", "phone"]
     }), 200
 
+@app.route('/api/user/register', methods=['POST'])
+def register_user():
+    data = request.get_json() or {}
+    identifier = data.get('identifier', '').strip().lower()
+    password = data.get('password', '').strip()
+    
+    if not identifier or not password:
+        return jsonify({"error": "Identifier and password are required"}), 400
+    
+    if identifier in users_db:
+        return jsonify({"error": "Account already exists with this identifier. Please sign in."}), 400
+    
+    user_obj = {
+        "id": identifier,
+        "password": password,
+        "displayName": data.get('displayName', identifier.split('@')[0]),
+        "handle": data.get('handle', f"@{identifier.split('@')[0].replace(' ', '')}"),
+        "bio": data.get('bio', 'Music curator & VibeCast station creator.'),
+        "provider": data.get('provider', 'credentials'),
+        "paymentMethod": data.get('paymentMethod'),
+        "prefs": data.get('prefs', {"autoplay": True, "aiBadges": True, "fullSongMode": True, "backgroundPlay": True}),
+        "stations": data.get('stations', []),
+        "last_synced": datetime.utcnow().isoformat()
+    }
+    users_db[identifier] = user_obj
+    return jsonify({"status": "registered", "user": user_obj}), 200
+
+@app.route('/api/user/login', methods=['POST'])
+def login_user():
+    data = request.get_json() or {}
+    identifier = data.get('identifier', '').strip().lower()
+    password = data.get('password', '').strip()
+    
+    if not identifier or not password:
+        return jsonify({"error": "Identifier and password are required"}), 400
+        
+    user = users_db.get(identifier)
+    if not user:
+        # Check alternative lookups (handle or phone)
+        for u_id, u_data in users_db.items():
+            if u_id == identifier or u_data.get('handle', '').lower() == identifier:
+                user = u_data
+                break
+                
+    if not user:
+        return jsonify({"error": "Account not found. Please register first."}), 404
+        
+    if user.get('password') != password:
+        return jsonify({"error": "Incorrect password."}), 401
+        
+    return jsonify({"status": "success", "user": user}), 200
+
+@app.route('/api/user/sync', methods=['POST'])
+def sync_user():
+    data = request.get_json() or {}
+    user_id = data.get('id', '').strip().lower()
+    if not user_id:
+        return jsonify({"error": "User ID required"}), 400
+    
+    if user_id in users_db:
+        pwd = users_db[user_id].get('password', '')
+        users_db[user_id] = {
+            **users_db[user_id],
+            **data,
+            "password": data.get('password', pwd),
+            "last_synced": datetime.utcnow().isoformat()
+        }
+    else:
+        users_db[user_id] = {
+            **data,
+            "password": data.get('password', 'secure_pass'),
+            "last_synced": datetime.utcnow().isoformat()
+        }
+    return jsonify({"status": "synced", "user": users_db[user_id]}), 200
+
 @app.route('/api/resolve-video', methods=['GET'])
 def resolve_video():
     query = request.args.get('q', '').strip()
@@ -39,7 +114,6 @@ def resolve_video():
         html = urllib.request.urlopen(req, timeout=8).read().decode('utf-8', errors='ignore')
         video_ids = re.findall(r'"videoId":"([a-zA-Z0-9_-]{11})"', html)
         
-        # Deduplicate while preserving top search relevance
         unique_ids = []
         for vid in video_ids:
             if vid not in unique_ids:
@@ -53,19 +127,6 @@ def resolve_video():
         return jsonify({"error": "No video ID found"}), 404
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-@app.route('/api/user/sync', methods=['POST'])
-def sync_user():
-    data = request.get_json() or {}
-    user_id = data.get('id')
-    if not user_id:
-        return jsonify({"error": "User ID required"}), 400
-    
-    users_db[user_id] = {
-        **data,
-        "last_synced": datetime.utcnow().isoformat()
-    }
-    return jsonify({"status": "synced", "user": users_db[user_id]}), 200
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
