@@ -44,7 +44,6 @@
     button:active { background: var(--accent-hover); transform: scale(0.99); }
     button.secondary { background: #262b38; color: var(--text); }
     button.store-btn { background: var(--success); color: white; margin-top: 6px; }
-    button.yt-btn { background: var(--yt); color: white; margin-top: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
     button.danger-btn { background: var(--danger); color: white; padding: 4px 8px; font-size: 0.75rem; width: auto; margin: 0; }
 
     .tabs { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
@@ -64,7 +63,6 @@
     .suggestion-item:hover { background: var(--accent); color: white; }
     .suggestion-item img { width: 32px; height: 32px; border-radius: 4px; object-fit: cover; }
 
-    /* Media Stage (In-App Video & Audio Player) */
     .media-stage { background: #0a0c10; border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 12px; text-align: center; }
     .stage-frame-wrap { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 8px; background: #000; margin-bottom: 10px; display: none; }
     .stage-frame-wrap iframe, #ytPlayerContainer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
@@ -73,10 +71,6 @@
 
     .merch-preview-card { background: #12151e; border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; }
     .merch-preview-card img { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; background: #000; }
-
-    .yt-result-card { display: flex; align-items: center; gap: 10px; padding: 8px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; cursor: pointer; background: #12151e; }
-    .yt-result-card:hover { border-color: var(--accent); }
-    .yt-result-card img { width: 72px; height: 42px; object-fit: cover; border-radius: 4px; flex-shrink: 0; }
 
     .modal-overlay {
       position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85);
@@ -103,14 +97,14 @@
       <div style="text-align: center; margin-bottom: 18px;">
         <div style="font-size: 2rem;">📻</div>
         <h2 style="font-size: 1.3rem; margin: 6px 0 4px 0;">VibeCast: Music-AI-Radio</h2>
-        <p style="font-size: 0.82rem; color: var(--muted); margin: 0;">Sign in to access your saved channels and full-stream creator studio.</p>
+        <p style="font-size: 0.82rem; color: var(--muted); margin: 0;">Sign in or register to access your persistent stations and creator studio.</p>
       </div>
 
       <button class="google-btn" onclick="loginWithGoogle()">
         <span style="font-weight: 800; color: #4285F4;">G</span> Continue with Google
       </button>
 
-      <div class="divider">— OR SIGN IN WITH CREDENTIALS —</div>
+      <div class="divider">— OR USE UNIVERSAL CREDENTIALS —</div>
 
       <div class="tabs">
         <button class="tab-btn active" id="authTabEmail" onclick="switchAuthMethod('email')">Email</button>
@@ -120,7 +114,11 @@
 
       <input type="text" id="authIdentifier" placeholder="Enter your email address" />
       <input type="password" id="authPassword" placeholder="Password" />
-      <button onclick="loginWithCredentials()">Sign In / Create Account</button>
+      
+      <div style="display: flex; gap: 8px; margin-top: 4px;">
+        <button class="secondary" onclick="loginWithCredentials()">Sign In</button>
+        <button onclick="registerAccount()">Register Account</button>
+      </div>
     </div>
   </div>
 
@@ -362,46 +360,118 @@
       }
     }
 
-    function loginWithGoogle() {
-      const email = prompt("Google OAuth Sign-In — Enter your Google email:", "creator@gmail.com");
-      if (!email) return;
-      initializeUserSession(email.split('@')[0], email, 'google');
-    }
-
-    function loginWithCredentials() {
+    async function registerAccount() {
       const idVal = document.getElementById('authIdentifier').value.trim();
       const passVal = document.getElementById('authPassword').value.trim();
-      if (!idVal || !passVal) return alert('Please enter your login credential and password.');
-      initializeUserSession(idVal.replace('@', ''), idVal, authMethod);
+      if (!idVal || !passVal) return alert('Please enter your identifier and password to register.');
+
+      const normalizedId = idVal.toLowerCase();
+      const displayName = idVal.includes('@') ? idVal.split('@')[0] : idVal.replace(/[^a-zA-Z0-9]/g, '');
+      const handle = `@${displayName.toLowerCase().replace(/[^a-z0-9]/g, '')}`;
+
+      try {
+        const res = await fetch('/api/user/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            identifier: normalizedId,
+            password: passVal,
+            displayName: displayName,
+            handle: handle,
+            bio: 'Music curator & VibeCast station creator.',
+            provider: authMethod,
+            paymentMethod: null,
+            prefs: { autoplay: true, aiBadges: true, fullSongMode: true, backgroundPlay: true },
+            stations: []
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) return alert(data.error || 'Registration failed.');
+
+        currentUser = data.user;
+        saveUserState();
+        enterApp();
+      } catch (e) {
+        console.error(e);
+        alert('Connection error during registration.');
+      }
     }
 
-    function initializeUserSession(name, identifier, provider) {
-      const storageKey = `vibecast_profile_${identifier.toLowerCase()}`;
-      const existing = localStorage.getItem(storageKey);
+    async function loginWithCredentials() {
+      const idVal = document.getElementById('authIdentifier').value.trim();
+      const passVal = document.getElementById('authPassword').value.trim();
+      if (!idVal || !passVal) return alert('Please enter your identifier and password to sign in.');
 
-      if (existing) {
-        currentUser = JSON.parse(existing);
-      } else {
-        currentUser = {
-          id: identifier.toLowerCase(),
-          displayName: name,
-          handle: `@${name.toLowerCase().replace(/[^a-z0-9]/g, '')}`,
-          bio: 'Music curator & VibeCast station creator.',
-          provider: provider,
-          paymentMethod: null,
-          prefs: { autoplay: true, aiBadges: true, fullSongMode: true, backgroundPlay: true },
-          stations: []
-        };
+      try {
+        const res = await fetch('/api/user/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            identifier: idVal.toLowerCase(),
+            password: passVal
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) return alert(data.error || 'Sign in failed. Please check credentials or register.');
+
+        currentUser = data.user;
+        saveUserState();
+        enterApp();
+      } catch (e) {
+        console.error(e);
+        alert('Connection error during sign in.');
       }
+    }
+
+    async function loginWithGoogle() {
+      const email = prompt("Google OAuth Sign-In — Enter your Google email:", "creator@gmail.com");
+      if (!email) return;
+      const identifier = email.toLowerCase();
+      const name = email.split('@')[0];
+
+      currentUser = {
+        id: identifier,
+        password: 'google_oauth_secure',
+        displayName: name,
+        handle: `@${name.toLowerCase().replace(/[^a-z0-9]/g, '')}`,
+        bio: 'Music curator & VibeCast station creator.',
+        provider: 'google',
+        paymentMethod: null,
+        prefs: { autoplay: true, aiBadges: true, fullSongMode: true, backgroundPlay: true },
+        stations: []
+      };
+
+      try {
+        const res = await fetch('/api/user/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(currentUser)
+        });
+        const data = await res.json();
+        if (res.ok && data.user) currentUser = data.user;
+      } catch (e) {
+        console.error(e);
+      }
+
       saveUserState();
       enterApp();
     }
 
-    function saveUserState() {
+    async function saveUserState() {
       if (!currentUser) return;
       currentUser.stations = stations;
       localStorage.setItem('vibecast_active_user', JSON.stringify(currentUser));
       localStorage.setItem(`vibecast_profile_${currentUser.id}`, JSON.stringify(currentUser));
+
+      try {
+        await fetch('/api/user/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(currentUser)
+        });
+      } catch (e) {
+        console.error("Backend sync failed:", e);
+      }
     }
 
     function enterApp() {
@@ -560,7 +630,6 @@
       closeModal();
     }
 
-    // STRICT MUSIC SEARCH WITH ROBUST WIKIPEDIA BIOS & FULL YOUTUBE STREAM RESOLUTION
     function searchGlobalArtists(query) {
       const box = document.getElementById('artistSuggestions');
       if (!query || query.trim().length < 2) { box.style.display = 'none'; return; }
@@ -629,8 +698,7 @@
       const station = stations.find(s => s.id == stationId);
       if (station.artists.includes(artist)) return alert('Artist already seeded.');
 
-      // Robust Wikipedia Artist Bio with OpenSearch Fallback
-      let artistBio = `${artist} is an acclaimed recording artist and global performer recognized for chart-topping studio albums, immersive live performances, and distinct sonic evolution across modern music streaming channels.`;
+      let artistBio = `${artist} is an acclaimed recording artist and global performer recognized for chart-topping studio albums, immersive live performances, and distinct sonic evolution.`;
       try {
         let wikiRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(artist)}`);
         if (!wikiRes.ok) {
@@ -647,9 +715,7 @@
             artistBio = wikiData.extract;
           }
         }
-      } catch (e) {
-        console.error("Wiki fetch error:", e);
-      }
+      } catch (e) { console.error("Wiki fetch error:", e); }
 
       let fetchedTracks = [];
       try {
@@ -663,7 +729,7 @@
             mediaUrl: t.previewUrl || '',
             videoEmbedUrl: '',
             artwork: t.artworkUrl100 ? t.artworkUrl100.replace('100x100', '600x600') : '',
-            lyrics: `🎵 "${t.trackName}" by ${artist}\nAlbum: ${t.collectionName || 'Studio Release'}\nGenre: ${t.primaryGenreName}\n\n[Full-Length Stream Loaded via VibeCast Stage Engine]\nEnjoy the immersive broadcast across your connected speakers and devices.`,
+            lyrics: `🎵 "${t.trackName}" by ${artist}\nAlbum: ${t.collectionName || 'Studio Release'}\nGenre: ${t.primaryGenreName}\n\n[Full-Length Stream Loaded via VibeCast Stage Engine]`,
             bio: artistBio,
             ticketsInfo: `${artist} Live World Tour 2026 — General Admission Pass ($35.00)`,
             merchInfo: `${artist} Official Studio Tour Signature Hoodie ($45.00)`,
@@ -683,7 +749,6 @@
       showToast('trackToast', `Seeded ${artist} with rich Wikipedia bio & full tracks!`);
     }
 
-    // YOUTUBE & CUSTOM MEDIA CREATION
     function addCustomCreation() {
       const stationId = document.getElementById('stationSelect').value;
       const title = document.getElementById('customTitle').value.trim();
@@ -714,7 +779,7 @@
         videoEmbedUrl: videoEmbedUrl,
         artwork: '',
         lyrics: lyrics || 'Original custom track lyrics.',
-        bio: bio || `Detailed creator background and studio history for ${artist}.`,
+        bio: bio || `Detailed creator background for ${artist}.`,
         ticketsInfo,
         merchInfo,
         disclosure: {
@@ -737,7 +802,7 @@
       document.getElementById('customMerch').value = '';
 
       updateUI();
-      showToast('trackToast', `"${title}" added with full video/audio support!`);
+      showToast('trackToast', `"${title}" added successfully!`);
     }
 
     function removeArtist(stationId, artistName) {
@@ -801,7 +866,6 @@
 
       let embedUrl = track.videoEmbedUrl;
 
-      // Automatically resolve full-length playable YouTube streams via the backend API if missing
       if (!embedUrl && isVideoModeEnabled) {
         document.getElementById('stageDeckHeader').textContent = 'ON AIR DECK • RESOLVING FULL STREAM...';
         try {
@@ -815,9 +879,7 @@
               saveUserState();
             }
           }
-        } catch (e) {
-          console.error("Full video resolution error:", e);
-        }
+        } catch (e) { console.error("Full video resolution error:", e); }
       }
 
       if (embedUrl && isVideoModeEnabled) {
