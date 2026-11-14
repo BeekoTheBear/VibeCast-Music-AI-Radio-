@@ -7,38 +7,43 @@
   <style>
     :root {
       --bg: #0d0f14;
-      --card: #161a23;
+      --card: rgba(22, 26, 35, 0.85);
       --accent: #7c4dff;
       --accent-hover: #651fff;
       --text: #f3f4f6;
       --muted: #9ca3af;
-      --border: #262b38;
+      --border: rgba(38, 43, 56, 0.8);
       --badge: #231d3b;
       --success: #10b981;
       --danger: #ef4444;
       --yt: #ff0000;
     }
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { margin: 0; background: var(--bg); color: var(--text); padding: 16px; padding-bottom: 110px; }
+    body { margin: 0; background: var(--bg); color: var(--text); padding: 16px; padding-bottom: 110px; position: relative; min-height: 100vh; overflow-x: hidden; }
     
-    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
+    /* Dynamic WebGL / Canvas Background */
+    #webglCanvas {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0.55;
+    }
+
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 12px; backdrop-filter: blur(10px); }
     h1 { font-size: 1.15rem; margin: 0; letter-spacing: -0.5px; }
     .header-actions { display: flex; align-items: center; gap: 8px; }
-    .profile-pill { background: var(--card); border: 1px solid var(--border); padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; color: var(--text); display: flex; align-items: center; gap: 6px; cursor: pointer; width: auto; margin: 0; }
+    .profile-pill { background: var(--card); border: 1px solid var(--border); padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; color: var(--text); display: flex; align-items: center; gap: 6px; cursor: pointer; width: auto; margin: 0; backdrop-filter: blur(8px); }
     .avatar-dot { width: 20px; height: 20px; border-radius: 50%; background: var(--accent); display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.72rem; }
 
     #authScreen {
-      position: fixed; inset: 0; background: var(--bg); z-index: 500;
+      position: fixed; inset: 0; background: rgba(13, 15, 20, 0.95); z-index: 500;
       display: flex; flex-direction: column; justify-content: center; align-items: center;
-      padding: 20px; overflow-y: auto;
+      padding: 20px; overflow-y: auto; backdrop-filter: blur(15px);
     }
-    .auth-box { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; width: 100%; max-width: 400px; }
+    .auth-box { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; width: 100%; max-width: 400px; backdrop-filter: blur(12px); }
     .google-btn { background: #ffffff; color: #111827; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 600; margin-bottom: 14px; width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); cursor: pointer; }
     .divider { text-align: center; color: var(--muted); font-size: 0.78rem; margin: 12px 0; }
 
-    .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 16px; position: relative; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 16px; position: relative; backdrop-filter: blur(12px); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
     h2 { font-size: 1rem; margin: 0 0 12px 0; color: var(--text); }
-    input, select, textarea, button { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: #0d0f14; color: var(--text); font-size: 0.95rem; margin-bottom: 10px; }
+    input, select, textarea, button { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: rgba(13, 15, 20, 0.8); color: var(--text); font-size: 0.95rem; margin-bottom: 10px; backdrop-filter: blur(6px); }
     textarea { resize: vertical; min-height: 60px; }
     button { background: var(--accent); border: none; font-weight: 600; cursor: pointer; transition: 0.2s; }
     button:active { background: var(--accent-hover); transform: scale(0.99); }
@@ -47,10 +52,21 @@
     button.danger-btn { background: var(--danger); color: white; padding: 4px 8px; font-size: 0.75rem; width: auto; margin: 0; }
 
     .tabs { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
-    .tab-btn { flex: 1; padding: 8px 6px; background: #0d0f14; border: 1px solid var(--border); border-radius: 8px; color: var(--muted); font-size: 0.78rem; white-space: nowrap; margin: 0; }
+    .tab-btn { flex: 1; padding: 8px 6px; background: rgba(13, 15, 20, 0.6); border: 1px solid var(--border); border-radius: 8px; color: var(--muted); font-size: 0.78rem; white-space: nowrap; margin: 0; }
     .tab-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
+
+    /* Interactive Web Slides & Scroll-Driven Storytelling Section */
+    .story-slides-container {
+      display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 8px; margin-bottom: 12px;
+    }
+    .story-slide-card {
+      min-width: 240px; flex: 0 0 auto; scroll-snap-align: start; background: rgba(18, 21, 30, 0.9);
+      border: 1px solid var(--border); border-radius: 10px; padding: 14px; position: relative; overflow: hidden;
+    }
+    .story-slide-card h4 { margin: 0 0 6px 0; font-size: 0.9rem; color: #b388ff; }
+    .story-slide-card p { margin: 0; font-size: 0.78rem; color: var(--muted); line-height: 1.4; }
 
     .autocomplete-container { position: relative; width: 100%; }
     .suggestions-list {
@@ -67,14 +83,14 @@
     .stage-frame-wrap { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 8px; background: #000; margin-bottom: 10px; display: none; }
     .stage-frame-wrap iframe, #ytPlayerContainer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
     .media-stage img { width: 100%; height: 215px; border-radius: 8px; object-fit: cover; display: none; margin: 0 auto 10px auto; background: #000; }
-    .info-box { background: #0d0f14; border: 1px solid var(--border); border-radius: 8px; padding: 14px; font-size: 0.88rem; line-height: 1.55; color: var(--text); text-align: left; max-height: 260px; overflow-y: auto; white-space: pre-wrap; margin-top: 8px; }
+    .info-box { background: rgba(13, 15, 20, 0.9); border: 1px solid var(--border); border-radius: 8px; padding: 14px; font-size: 0.88rem; line-height: 1.55; color: var(--text); text-align: left; max-height: 260px; overflow-y: auto; white-space: pre-wrap; margin-top: 8px; }
 
     .merch-preview-card { background: #12151e; border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; }
     .merch-preview-card img { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; background: #000; }
 
     .modal-overlay {
       position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85);
-      z-index: 300; display: none; justify-content: center; align-items: center; padding: 16px; overflow-y: auto;
+      z-index: 300; display: none; justify-content: center; align-items: center; padding: 16px; overflow-y: auto; backdrop-filter: blur(10px);
     }
     .modal-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto; }
     .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; gap: 12px; }
@@ -83,13 +99,16 @@
     .checkbox-group { display: flex; flex-direction: column; gap: 8px; margin: 10px 0 14px 0; font-size: 0.88rem; color: var(--muted); }
     .checkbox-group label { display: flex; align-items: center; gap: 10px; cursor: pointer; }
     .checkbox-group input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); }
-    .station-item { padding: 12px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 10px; }
+    .station-item { padding: 12px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 10px; background: rgba(18, 21, 30, 0.6); }
     .ai-badge { background: var(--badge); color: #b388ff; font-size: 0.7rem; padding: 2px 7px; border-radius: 6px; border: 1px solid #3f2e7a; font-weight: 600; display: inline-block; margin-right: 4px; margin-top: 4px; }
-    .player-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #12151e; border-top: 1px solid var(--border); padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; z-index: 100; }
+    .player-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(18, 21, 30, 0.95); border-top: 1px solid var(--border); padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; z-index: 100; backdrop-filter: blur(12px); }
     .toast { font-size: 0.85rem; color: var(--success); margin-top: 4px; display: none; }
   </style>
 </head>
 <body>
+
+  <!-- DYNAMIC WEBGL / CANVAS BACKGROUND -->
+  <canvas id="webglCanvas"></canvas>
 
   <!-- AUTH SCREEN -->
   <div id="authScreen">
@@ -97,7 +116,7 @@
       <div style="text-align: center; margin-bottom: 18px;">
         <div style="font-size: 2rem;">📻</div>
         <h2 style="font-size: 1.3rem; margin: 6px 0 4px 0;">VibeCast: Music-AI-Radio</h2>
-        <p style="font-size: 0.82rem; color: var(--muted); margin: 0;">Sign in or register to access your persistent stations and creator studio.</p>
+        <p style="font-size: 0.82rem; color: var(--muted); margin: 0;">Sign in or register to access your persistent stations and 3D creator studio.</p>
       </div>
 
       <button class="google-btn" onclick="loginWithGoogle()">
@@ -137,7 +156,7 @@
   <!-- NOW PLAYING STAGE -->
   <div class="card" id="nowPlayingCard" style="display: none;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-      <span style="font-size: 0.78rem; color: #b388ff; font-weight: 600;" id="stageDeckHeader">ON AIR DECK • FULL STREAM</span>
+      <span style="font-size: 0.78rem; color: #b388ff; font-weight: 600;" id="stageDeckHeader">ON AIR DECK • OFFICIAL MUSIC VIDEO</span>
       <div style="display: flex; gap: 6px;">
         <button class="secondary" style="width: auto; padding: 5px 10px; font-size: 0.78rem; margin: 0;" onclick="toggleFullVideoMode()">📺 Toggle Video</button>
         <button class="secondary" style="width: auto; padding: 5px 10px; font-size: 0.78rem; margin: 0;" onclick="skipNextTrack()">⏭ Next</button>
@@ -152,7 +171,6 @@
       <div id="stageTitle" style="font-weight: 700; font-size: 1rem; margin-top: 6px;">Track Title</div>
       <div id="stageArtist" style="font-size: 0.85rem; color: var(--muted); margin-bottom: 6px;">Artist</div>
       <div id="stageBadges"></div>
-      <div id="ytAltPicker" style="display: none; margin-top: 10px; text-align: left;"></div>
     </div>
 
     <div class="tabs">
@@ -162,6 +180,29 @@
       <button class="tab-btn" id="btnMerch" onclick="switchInfoTab('merch')">👕 Merch</button>
     </div>
     <div id="infoContent" class="info-box">Select a channel to load info...</div>
+  </div>
+
+  <!-- INTERACTIVE WEB SLIDES & SCROLL-DRIVEN STORYTELLING -->
+  <div class="card">
+    <h2>✨ Interactive Web Slides & Storytelling</h2>
+    <div class="story-slides-container">
+      <div class="story-slide-card">
+        <h4>🎧 01. AI Radio Evolution</h4>
+        <p>Curate custom multi-artist rotation streams powered by smart search engines and WebGL visuals.</p>
+      </div>
+      <div class="story-slide-card">
+        <h4>🎬 02. Official Video Stage</h4>
+        <p>Automatically filters out lyric videos in favor of pristine official music video streams.</p>
+      </div>
+      <div class="story-slide-card">
+        <h4>🎟️ 03. 1-Tap Commerce</h4>
+        <p>Tokenized wallet checkout for VIP tour passes and studio merchandise right inside VibeCast.</p>
+      </div>
+      <div class="story-slide-card">
+        <h4>🌌 04. 3D WebGL Worlds</h4>
+        <p>Immersive interactive background nodes and canvas audio-reactive particle waves.</p>
+      </div>
+    </div>
   </div>
 
   <!-- 1. CREATE CHANNEL -->
@@ -264,8 +305,8 @@
       <div id="setPanelPrefs" class="tab-panel">
         <div class="setting-row">
           <div>
-            <div style="font-weight: 600;">Full-Length In-App Video Stream</div>
-            <div style="font-size: 0.75rem; color: var(--muted);">Stream complete songs via embedded stage player instead of 30s clips</div>
+            <div style="font-weight: 600;">Full-Length Official Video Stream</div>
+            <div style="font-size: 0.75rem; color: var(--muted);">Stream complete songs via official music video stage player</div>
           </div>
           <input type="checkbox" id="prefFullSongMode" checked onchange="savePreferences()" />
         </div>
@@ -331,10 +372,68 @@
     let authMethod = 'email';
     let searchTimeout = null;
     let searchCache = [];
-    let ytPlayer = null;
     let isVideoModeEnabled = true;
 
+    // WebGL / Canvas Background Animation (Particle Waves)
+    const canvas = document.getElementById('webglCanvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    function initCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      particles = [];
+      for (let i = 0; i < 65; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          radius: Math.random() * 2 + 1,
+          vx: (Math.random() - 0.5) * 0.6,
+          vy: (Math.random() - 0.5) * 0.6,
+          color: Math.random() > 0.5 ? '#7c4dff' : '#10b981'
+        });
+      }
+    }
+
+    function animateCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#0d0f14';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      particles.forEach((p, idx) => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = p.color;
+        ctx.fill();
+
+        // Connect nearby particles
+        for (let j = idx + 1; j < particles.length; j++) {
+          let p2 = particles[j];
+          let dist = Math.hypot(p.x - p2.x, p.y - p2.y);
+          if (dist < 120) {
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.strokeStyle = `rgba(124, 77, 255, ${1 - dist / 120})`;
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+        }
+      });
+      requestAnimationFrame(animateCanvas);
+    }
+
+    window.addEventListener('resize', initCanvas);
     window.onload = () => {
+      initCanvas();
+      animateCanvas();
       const savedUser = localStorage.getItem('vibecast_active_user');
       if (savedUser) {
         currentUser = JSON.parse(savedUser);
@@ -449,9 +548,7 @@
         });
         const data = await res.json();
         if (res.ok && data.user) currentUser = data.user;
-      } catch (e) {
-        console.error(e);
-      }
+      } catch (e) { console.error(e); }
 
       saveUserState();
       enterApp();
@@ -469,9 +566,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(currentUser)
         });
-      } catch (e) {
-        console.error("Backend sync failed:", e);
-      }
+      } catch (e) { console.error("Backend sync failed:", e); }
     }
 
     function enterApp() {
@@ -481,6 +576,7 @@
       document.getElementById('headerHandle').textContent = currentUser.handle;
       if (currentUser.prefs && currentUser.prefs.fullSongMode !== undefined) {
         document.getElementById('prefFullSongMode').checked = currentUser.prefs.fullSongMode;
+        isVideoModeEnabled = currentUser.prefs.fullSongMode;
       }
       updateUI();
     }
@@ -547,6 +643,7 @@
         fullSongMode: document.getElementById('prefFullSongMode').checked,
         backgroundPlay: document.getElementById('prefBackgroundPlay').checked
       };
+      isVideoModeEnabled = currentUser.prefs.fullSongMode;
       saveUserState();
     }
 
@@ -729,7 +826,7 @@
             mediaUrl: t.previewUrl || '',
             videoEmbedUrl: '',
             artwork: t.artworkUrl100 ? t.artworkUrl100.replace('100x100', '600x600') : '',
-            lyrics: `🎵 "${t.trackName}" by ${artist}\nAlbum: ${t.collectionName || 'Studio Release'}\nGenre: ${t.primaryGenreName}\n\n[Full-Length Stream Loaded via VibeCast Stage Engine]`,
+            lyrics: `🎵 "${t.trackName}" by ${artist}\nAlbum: ${t.collectionName || 'Studio Release'}\nGenre: ${t.primaryGenreName}\n\n[Official Video Stream Loaded via VibeCast 3D Stage Engine]`,
             bio: artistBio,
             ticketsInfo: `${artist} Live World Tour 2026 — General Admission Pass ($35.00)`,
             merchInfo: `${artist} Official Studio Tour Signature Hoodie ($45.00)`,
@@ -746,7 +843,7 @@
 
       document.getElementById('artistName').value = '';
       updateUI();
-      showToast('trackToast', `Seeded ${artist} with rich Wikipedia bio & full tracks!`);
+      showToast('trackToast', `Seeded ${artist} with rich Wikipedia bio & official video rotation!`);
     }
 
     function addCustomCreation() {
@@ -847,11 +944,11 @@
       document.getElementById('nowPlayingSub').textContent = track.artist;
 
       let badges = '';
-      if (currentUser.prefs.aiBadges) {
+      if (currentUser && currentUser.prefs && currentUser.prefs.aiBadges) {
         if (track.disclosure && track.disclosure.audio) badges += '<span class="ai-badge">AI Audio</span>';
         if (track.disclosure && track.disclosure.lyrics) badges += '<span class="ai-badge">AI Lyrics</span>';
         if (track.disclosure && track.disclosure.artwork) badges += '<span class="ai-badge">AI Video/Art</span>';
-        if (!badges) badges = '<span class="ai-badge" style="color:#10b981; border-color:#10b981;">Full-Song Stream</span>';
+        if (!badges) badges = '<span class="ai-badge" style="color:#10b981; border-color:#10b981;">Official Video Stream</span>';
       }
       document.getElementById('stageBadges').innerHTML = badges;
 
@@ -865,11 +962,13 @@
       audioEl.style.display = 'none';
 
       let embedUrl = track.videoEmbedUrl;
+      const shouldUseVideo = currentUser && currentUser.prefs && currentUser.prefs.fullSongMode !== false ? isVideoModeEnabled : true;
 
-      if (!embedUrl && isVideoModeEnabled) {
-        document.getElementById('stageDeckHeader').textContent = 'ON AIR DECK • RESOLVING FULL STREAM...';
+      // Always resolve official music video if missing or video mode is active
+      if (!embedUrl && shouldUseVideo) {
+        document.getElementById('stageDeckHeader').textContent = 'ON AIR DECK • RESOLVING OFFICIAL MUSIC VIDEO...';
         try {
-          const searchQuery = `${track.artist} ${track.title} official audio`;
+          const searchQuery = `${track.artist} ${track.title}`;
           const res = await fetch(`/api/resolve-video?q=${encodeURIComponent(searchQuery)}`);
           if (res.ok) {
             const data = await res.json();
@@ -879,12 +978,12 @@
               saveUserState();
             }
           }
-        } catch (e) { console.error("Full video resolution error:", e); }
+        } catch (e) { console.error("Official video resolution error:", e); }
       }
 
-      if (embedUrl && isVideoModeEnabled) {
+      if (embedUrl && shouldUseVideo) {
         ytWrap.style.display = 'block';
-        document.getElementById('stageDeckHeader').textContent = 'ON AIR DECK • FULL VIDEO STREAM';
+        document.getElementById('stageDeckHeader').textContent = 'ON AIR DECK • OFFICIAL MUSIC VIDEO STREAM';
         document.getElementById('ytPlayerContainer').innerHTML = `<iframe id="ytIframe" src="${embedUrl}" style="width:100%;height:100%;border:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
       } else {
         document.getElementById('stageDeckHeader').textContent = 'ON AIR DECK • AUDIO PREVIEW FALLBACK';
